@@ -1,0 +1,82 @@
+.form-table {
+  border-collapse: collapse;
+}
+
+.form-table td {
+  vertical-align: middle;
+  line-height: 1.2;
+}
+
+/* Shared styles */
+#formMITMAS .form-table label,
+#formMITFAC .form-table label,
+#formCUGEX .form-table label,
+#formMITPOP .form-table label {
+  font-weight: 500;
+  white-space: nowrap;
+  color: #2c2c2c;
+}
+
+/* Unique width for MITMAS */
+#formMITMAS .form-table label {
+  width: 150px;
+}
+
+/* Shared width for others */
+#formMITFAC .form-table label,
+#formCUGEX .form-table label,
+#formMITPOP .form-table label {
+  width: 100px;
+}
+
+.lookup {
+  padding: 4px 8px;
+  box-sizing: border-box;
+}
+#formMITMAS,
+#formMITLAD,
+#formMITPOP,
+#formMITFAC,
+#formCUGEX {
+  margin-top: 30px;
+}
+td label {
+  margin-right: 10px;
+  color: #6f2e00 !important;
+}
+.mainpageKIT {
+  zoom: 90%;
+}
+.fieldset-title {
+  text-decoration: underline;
+  color: #0072ed;
+  font-weight: bold;
+  margin-top: -20px;
+}
+
+td input {
+  background-color: #ffecca;
+}
+
+#container {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.five,
+.seven {
+  flex: 1 1 500px; /* grow, shrink, basis */
+  min-width: 60px;
+}
+
+#buttonPrev {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.process-indicator.responsive.compact .label {
+  font-weight: bold !important;
+}
+.process-indicator {
+  margin-top: 60px !important;
+}

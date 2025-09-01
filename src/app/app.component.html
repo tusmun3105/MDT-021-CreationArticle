@@ -1,0 +1,27 @@
+<soho-icons-new></soho-icons-new>
+<soho-icons-new></soho-icons-new>
+<soho-icons-empty-new></soho-icons-empty-new>
+<section class="masthead">
+   <div class="flex-toolbar" data-options="{maxVisibleButtons: 6}">
+      <div class="toolbar-section">
+         <button type="button" class="masthead-icon">
+            <svg class="icon icon-logo" focusable="false" aria-hidden="true" role="presentation">
+               <use href="#icon-logo"></use>
+            </svg>
+            <span class="audible">Go To Home</span>
+         </button>
+      </div>
+
+      <div class="toolbar-section title">
+         <h1 class="masthead-appname">{{lang.get('appName')}}</h1>
+      </div>
+
+      <div class="toolbar-section buttonset">
+         <button type="button" class="btn" (click)="headerPanelVersion()">{{appVersion.version}}</button>
+      </div>
+   </div>
+</section>
+<div style="overflow-y: auto; overflow-y: auto; max-width: 100%; max-height: 100%; background-color: aliceblue;"
+   class="full columns">
+   <router-outlet></router-outlet>
+</div>

@@ -1,0 +1,430 @@
+<div style="background-color: aliceblue;">
+   <div class="row mainpageKIT" soho-busyindicator [blockUI]="true" [activated]="isBusyForm">
+      <table style="width: 100%; border-collapse: collapse; background-color: #e6e6e6; margin: 15px;">
+         <tr>
+            <!-- Colonne 1 : Dépôt -->
+            <td
+               style="width: 20%; border: 1px solid black; text-align: center; vertical-align: middle; font-size: large;">
+               <strong>{{ lang.get('MITBAL_FIELD_LABELS').MBWHLO }} :</strong> <span
+                  style="font-weight: normal; padding-left: 20px;">{{whlo}}</span>
+            </td>
+
+
+            <!-- Colonne 2 : Détails -->
+            <td style="width: 50%; border: 1px solid black; vertical-align: top; padding: 10px;">
+               <div style="border-bottom: 1px solid #999; padding-bottom: 5px; margin-bottom: 5px;">
+                  <span style="
+                 display: inline-block;
+                 width: 220px;
+                 border-right: 2px solid #999;
+                 padding-right: 10px;
+                 font-weight: bold;
+                 ">
+                     {{ lang.get('HEADER_TITLE_CODE_AQ').Title }}
+                  </span>
+                  <span style="padding-left: 40px;">{{codeAcquisitionValue}}</span>
+               </div>
+               <div style="border-bottom: 1px solid #999; padding-bottom: 5px; margin-bottom: 5px;">
+                  <span style="
+                 display: inline-block;
+                 width: 220px;
+                 border-right: 2px solid #999;
+                 padding-right: 10px;
+                 font-weight: bold;
+                 ">
+                     {{ lang.get('HEADER_TITLE_METH_PLAN').Title }}
+                  </span>
+                  <span style="padding-left: 40px;">{{methodPlanifValue}}</span>
+               </div>
+               <div>
+                  <span style="
+                 display: inline-block;
+                 width: 220px;
+                 border-right: 2px solid #999;
+                 padding-right: 10px;
+                 font-weight: bold;
+                 ">
+                     {{ lang.get('HEADER_TITLE_PLAN_POL').Title }} </span>
+                  <span style="padding-left: 40px;">{{planningPolicyValue}}</span>
+               </div>
+            </td>
+
+            <!-- Colonne 3 : Référence -->
+            <td
+               style="width: 30%; border: 1px solid black; text-align: center; vertical-align: middle; font-weight: bold; font-size: large;">
+               {{typeOfRefValue}}
+               <br />
+               <span>{{referenceModel}}</span>
+            </td>
+         </tr>
+      </table>
+
+
+
+
+
+
+
+
+
+
+      <div class="row" style="text-align: center;">
+         <div class="twelve columns" style="position: relative;">
+            <!-- Back button aligned to top-left -->
+            <button class="btn-primary" type="button" id="buttonPrev"
+               style="position: absolute; top: 0; right: 0; margin-top:10px" (click)="onsubmit()">
+               <svg class="icon" focusable="false" aria-hidden="true" role="presentation">
+                  <use href="#icon-add"></use>
+               </svg>
+               <span>{{lang.get('ButtonCreateLabel')}}</span>
+            </button>
+
+            <!-- Centered title -->
+            <h1 class="fieldset-title" style="text-align: center;">
+
+            </h1>
+         </div>
+      </div>
+      <div id="container">
+         <div class="five columns">
+            <form [formGroup]="formMITMAS" (ngSubmit)="onsubmit()" class="form-layout-compact" id="formMITMAS">
+               <table class="form-table">
+                  <tr>
+                     <td><label for="MMITNO" class="required">{{ lang.get('MITMAS_FIELD_LABELS').MMITNO }}</label></td>
+                     <td><input type="text" class="lookup" data-init="false" id="MMITNO" name="MMITNO"
+                           formControlName="MMITNO" maxlength="15" style="text-transform: uppercase;" /></td>
+                  </tr>
+                  <tr>
+                     <td>
+                        <label for="MMSTAT" class="label">{{ lang.get('MITMAS_FIELD_LABELS').MMSTAT }}</label>
+                     </td>
+                     <td>
+                        <select id="MMSTAT" name="MMSTAT" class="dropdown" formControlName="MMSTAT"
+                           data-automation-id="mmstat-dropdown">
+                           <option value="00">00</option>
+                           <option value="01">01</option>
+                           <option value="02">02</option>
+                           <option value="03">03</option>
+                           <option value="04">04</option>
+                           <option value="05">05</option>
+                           <option value="06">06</option>
+                           <option value="07">07</option>
+                           <option value="08">08</option>
+                           <option value="09">09</option>
+                           <option value="10">10</option>
+                           <option value="11">11</option>
+                           <option value="12">12</option>
+                           <option value="13">13</option>
+                           <option value="14">14</option>
+                           <option value="15">15</option>
+                           <option value="20">20</option>
+                           <option value="30">30</option>
+                           <option value="40">40</option>
+                           <option value="50">50</option>
+                           <option value="80">80</option>
+                           <option value="90">90</option>
+                           <option value="99">99</option>
+                        </select>
+                     </td>
+                  </tr>
+                  <tr>
+                     <td><label for="MMITDS">{{ lang.get('MITMAS_FIELD_LABELS').MMITDS }}</label></td>
+                     <td><input type="text" class="lookup" data-init="false" id="MMITDS" name="MMITDS"
+                           formControlName="MMITDS" maxlength="30" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="MMFUDS">{{ lang.get('MITMAS_FIELD_LABELS').MMFUDS }}</label></td>
+                     <td><input type="text" class="lookup" data-init="false" id="MMFUDS" name="MMFUDS"
+                           formControlName="MMFUDS" maxlength="60" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="MMPRGP">{{ lang.get('MITMAS_FIELD_LABELS').MMPRGP }}</label></td>
+                     <td><input type="text" class="lookup" data-init="false" id="MMPRGP" name="MMPRGP"
+                           formControlName="MMPRGP" maxlength="3" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="MMWAPC">{{ lang.get('MITMAS_FIELD_LABELS').MMWAPC }}</label></td>
+                     <td><input type="number" class="lookup" data-init="false" id="MMWAPC" name="MMWAPC"
+                           formControlName="MMWAPC" min="0" max="9999999"
+                           oninput="this.value = this.value.slice(0, 7)" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="MMILEN">{{ lang.get('MITMAS_FIELD_LABELS').MMILEN }}</label></td>
+                     <td><input type="number" class="lookup" data-init="false" id="MMILEN" name="MMILEN"
+                           formControlName="MMILEN" min="0" max="9999999"
+                           oninput="this.value = this.value.slice(0, 7)" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="MMIWID">{{ lang.get('MITMAS_FIELD_LABELS').MMIWID }}</label></td>
+                     <td><input type="number" class="lookup" data-init="false" id="MMIWID" name="MMIWID"
+                           formControlName="MMIWID" min="0" max="9999999"
+                           oninput="this.value = this.value.slice(0, 7)" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="MMITGR">{{ lang.get('MITMAS_FIELD_LABELS').MMITGR }}</label></td>
+                     <td><input type="text" class="lookup" data-init="false" id="MMITGR" name="MMITGR"
+                           formControlName="MMITGR" maxlength="8" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="MMDWNO">{{ lang.get('MITMAS_FIELD_LABELS').MMDWNO }}</label></td>
+                     <td><input type="text" class="lookup" data-init="false" id="MMDWNO" name="MMDWNO"
+                           formControlName="MMDWNO" maxlength="20" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="M9CSNO">{{ lang.get('MITFAC_FIELD_LABELS').M9CSNO }}</label></td>
+                     <td><input type="text" class="lookup" data-init="false" id="M9CSNO" name="M9CSNO"
+                           formControlName="M9CSNO" maxlength="16" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="M9ORCO">{{ lang.get('MITFAC_FIELD_LABELS').M9ORCO }}</label></td>
+                     <td><input type="text" class="lookup" data-init="false" id="M9ORCO" name="M9ORCO"
+                           formControlName="M9ORCO" maxlength="3" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="CIECRG">{{ lang.get('CECOCI_FIELD_LABELS').CIECRG }}</label></td>
+                     <td><input type="text" class="lookup" data-init="false" id="CIECRG" name="CIECRG"
+                           formControlName="CIECRG" maxlength="10" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="CIECOP">{{ lang.get('CECOCI_FIELD_LABELS').CIECOP }}</label></td>
+                     <td><input type="text" class="lookup" data-init="false" id="CIECOP" name="CIECOP"
+                           formControlName="CIECOP" maxlength="15" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="MMGRWE">{{ lang.get('MITMAS_FIELD_LABELS').MMGRWE }}</label></td>
+                     <td><input type="number" step="0.01" maxlength="17" class="lookup" data-init="false" id="MMGRWE"
+                           name="MMGRWE" formControlName="MMGRWE"
+                           oninput="if(this.value.length > 17) this.value = this.value.slice(0, 17)" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="MMCFI3">{{ lang.get('MITMAS_FIELD_LABELS').MMCFI3 }}</label></td>
+                     <td><input type="text" class="lookup" data-init="false" id="MMCFI3" name="MMCFI3"
+                           formControlName="MMCFI3" maxlength="3" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="MMDIGI">{{ lang.get('MITMAS_FIELD_LABELS').MMDIGI }}</label></td>
+                     <td><input type="text" class="lookup" data-init="false" id="MMDIGI" name="MMDIGI"
+                           formControlName="MMDIGI" maxlength="2" /></td>
+                  </tr>
+               </table>
+            </form>
+            <form [formGroup]="formMITBAL" (ngSubmit)="onsubmit()" class="form-layout-compact" id="formMITBAL">
+               <table class="form-table">
+                  <tr>
+                     <td><label for="MBRESP">Agent planning</label></td>
+                     <td><input type="text" id="MBRESP" name="MBRESP" formControlName="MBRESP" class="lookup"
+                           maxlength="10" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="MBBUYE">Acheteur (S/T)</label></td>
+                     <td><input type="text" id="MBBUYE" name="MBBUYE" formControlName="MBBUYE" class="lookup"
+                           maxlength="10" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="MBSUNO">Fournisseur (S/T)</label></td>
+                     <td><input type="text" id="MBSUNO" name="MBSUNO" formControlName="MBSUNO" class="lookup"
+                           maxlength="10" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="MMGRTS">Classe grp techno</label></td>
+                     <td><input type="text" id="MMGRTS" name="MMGRTS" formControlName="MMGRTS" class="lookup"
+                           maxlength="5" /></td>
+                  </tr>
+                  <tr *ngIf="!hideFieldMITBAL">
+                     <td><label for="M9WCLN">Ligne Prod</label></td>
+                     <td><input type="text" id="M9WCLN" name="M9WCLN" formControlName="M9WCLN" class="lookup"
+                           maxlength="8" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="MBWHSL">Emplacement</label></td>
+                     <td><input type="text" id="MBWHSL" name="MBWHSL" formControlName="MBWHSL" class="lookup"
+                           maxlength="10" /></td>
+                  </tr>
+                  <tr *ngIf="!hideFieldMITBAL">
+                     <td><label for="">Création Ligne structure</label></td>
+                     <td> <input type="checkbox" class="checkbox" id="CREATELINE" name="CREATELINE"
+                           formControlName="CREATELINE" /><label style="margin-left: 75px; margin-top: 5px;"
+                           for="CREATELINE" class="checkbox-label"></label>
+                     </td>
+                  </tr>
+               </table>
+            </form>
+            <form [formGroup]="formMITVEN" (ngSubmit)="onsubmit()" class="form-layout-compact" id="formMITVEN"
+               *ngIf="!hideFieldMITVEN">
+               <table class="form-table">
+                  <tr>
+                     <td><label for="IFSITE">Référence fournisseur</label></td>
+                     <td><input type="text" id="IFSITE" name="IFSITE" formControlName="IFSITE" class="lookup"
+                           maxlength="30" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="IFSITT">Désignation fournisseur</label></td>
+                     <td><input type="text" id="IFSITT" name="IFSITT" formControlName="IFSITT" class="lookup"
+                           maxlength="120" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="MBLEA1">Délai d'appro</label></td>
+                     <td><input type="number" id="MBLEA1" name="MBLEA1" formControlName="MBLEA1" class="lookup" min="0"
+                           max="999" oninput="this.value = this.value.slice(0, 3)" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="IFPUPR">Prix achat</label></td>
+                     <td><input type="number" id="IFPUPR" name="IFPUPR" formControlName="IFPUPR" class="lookup" min="0"
+                           max="9999999999999999999" oninput="this.value = this.value.slice(0, 19)" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="IFPUCD">PCB Prix</label></td>
+                     <td><input type="number" id="IFPUCD" name="IFPUCD" formControlName="IFPUCD" class="lookup" min="0"
+                           max="99999" oninput="this.value = this.value.slice(0, 5)" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="IFCUCD">Devise</label></td>
+                     <td><input type="text" id="IFCUCD" name="IFCUCD" formControlName="IFCUCD" class="lookup"
+                           maxlength="3" /></td>
+                  </tr>
+                  <tr>
+                     <td> <label for="IFUVDT" class="label">Date fin validité</label></td>
+                     <td><input type="text" id="IFUVDT" class="datepicker" name="IFUVDT" formControlName="IFUVDT"
+                           placeholder="dd/mm/yyyy" />
+                     </td>
+                  </tr>
+                  <tr>
+                     <td><label for="BLOCTXT">Bloc texte</label></td>
+                     <td><textarea type="text" id="BLOCTXT" name="BLOCTXT" formControlName="BLOCTXT"
+                           class="textarea resizable" maxlength="60"></textarea></td>
+                  </tr>
+               </table>
+            </form>
+
+         </div>
+         <div class="seven columns">
+            <div class="row">
+               <form [formGroup]="formMITLAD" (ngSubmit)="onsubmit()" class="form-layout-compact" id="formMITLAD">
+                  <table class="form-table">
+                     <tr>
+                        <td><label for="LMCD_GB_ITDS">GB</label></td>
+                        <td><input type="text" id="LMCD_GB_ITDS" formControlName="LMCD_GB_ITDS" maxlength="60" /></td>
+                        <td><input type="text" id="LMCD_GB_FUDS" formControlName="LMCD_GB_FUDS" maxlength="120" /></td>
+                     </tr>
+                     <tr>
+                        <td><label for="LMCD_DE_ITDS">DE</label></td>
+                        <td><input type="text" id="LMCD_DE_ITDS" formControlName="LMCD_DE_ITDS" maxlength="60" /></td>
+                        <td><input type="text" id="LMCD_DE_FUDS" formControlName="LMCD_DE_FUDS" maxlength="120" /></td>
+                     </tr>
+                     <tr>
+                        <td><label for="LMCD_PL_ITDS">PL</label></td>
+                        <td><input type="text" id="LMCD_PL_ITDS" formControlName="LMCD_PL_ITDS" maxlength="60" /></td>
+                        <td><input type="text" id="LMCD_PL_FUDS" formControlName="LMCD_PL_FUDS" maxlength="120" /></td>
+                     </tr>
+                     <tr>
+                        <td><label for="LMCD_NL_ITDS">NL</label></td>
+                        <td><input type="text" id="LMCD_NL_ITDS" formControlName="LMCD_NL_ITDS" maxlength="60" /></td>
+                        <td><input type="text" id="LMCD_NL_FUDS" formControlName="LMCD_NL_FUDS" maxlength="120" /></td>
+                     </tr>
+                     <tr>
+                        <td><label for="LMCD_PT_ITDS">PT</label></td>
+                        <td><input type="text" id="LMCD_PT_ITDS" formControlName="LMCD_PT_ITDS" maxlength="60" /></td>
+                        <td><input type="text" id="LMCD_PT_FUDS" formControlName="LMCD_PT_FUDS" maxlength="120" /></td>
+                     </tr>
+                     <tr>
+                        <td><label for="LMCD_ES_ITDS">ES</label></td>
+                        <td><input type="text" id="LMCD_ES_ITDS" formControlName="LMCD_ES_ITDS" maxlength="60" /></td>
+                        <td><input type="text" id="LMCD_ES_FUDS" formControlName="LMCD_ES_FUDS" maxlength="120" /></td>
+                     </tr>
+                     <tr>
+                        <td><label for="LMCD_FR_ITDS">FR</label></td>
+                        <td><input type="text" id="LMCD_FR_ITDS" formControlName="LMCD_FR_ITDS" maxlength="60" /></td>
+                        <td><input type="text" id="LMCD_FR_FUDS" formControlName="LMCD_FR_FUDS" maxlength="120" /></td>
+                     </tr>
+                  </table>
+               </form>
+
+            </div>
+            <div class="row" style="margin-left:-25px;">
+               <div class="six columns">
+                  <form [formGroup]="formMITPOP" (ngSubmit)="onsubmit()" class="form-layout-compact" id="formMITPOP">
+                     <table class="form-table">
+                        <tr>
+                           <td><label for="POP1">{{ lang.get('MITPOP_FIELD_LABELS').POP1 }}</label></td>
+                           <td><input type="text" class="lookup input-sm" data-init="false" id="POP1" name="POP1"
+                                 formControlName="POP1" maxlength="30" style="margin-left: -25px;" /></td>
+                        </tr>
+                        <tr>
+                           <td><label for="POP2">{{ lang.get('MITPOP_FIELD_LABELS').POP2 }}</label></td>
+                           <td><input type="text" class="lookup input-sm" data-init="false" id="POP2" name="POP2"
+                                 formControlName="POP2" maxlength="13" style="margin-left: -25px;" /></td>
+                        </tr>
+                     </table>
+                  </form>
+               </div>
+               <div class="six columns">
+                  <form [formGroup]="formMITFAC" (ngSubmit)="onsubmit()" class="form-layout-compact" id="formMITFAC">
+                     <table class="form-table">
+                        <tr>
+                           <td><label for="M9ACRF">{{ lang.get('MITFAC_FIELD_LABELS').M9ACRF }}</label></td>
+                           <td><input type="text" class="lookup input-sm" data-init="false" id="M9ACRF" name="M9ACRF"
+                                 formControlName="M9ACRF" maxlength="8" /></td>
+                        </tr>
+                        <tr>
+                           <td><label for="MMITTY">{{ lang.get('MITMAS_FIELD_LABELS').MMITTY }}</label></td>
+                           <td><input type="text" class="lookup input-sm" data-init="false" id="MMITTY" name="MMITTY"
+                                 formControlName="MMITTY" maxlength="3" /></td>
+                        </tr>
+                        <tr>
+                           <td>
+                              <label for="M9VAMT">{{ lang.get('MITFAC_FIELD_LABELS').M9VAMT }}</label>
+                           </td>
+                           <td>
+                              <select id="M9VAMT" name="M9VAMT" class="dropdown" formControlName="M9VAMT"
+                                 data-automation-id="m9vamt-dropdown">
+                                 <option value="0">0</option>
+                                 <option value="1">1</option>
+                                 <option value="2">2</option>
+                                 <option value="3">3</option>
+                                 <option value="4">4</option>
+                                 <option value="5">5</option>
+                                 <option value="6">6</option>
+                              </select>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td><label for="MMVTCP">{{ lang.get('MITMAS_FIELD_LABELS').MMVTCP }}</label></td>
+                           <td><input type="number" class="lookup input-sm" data-init="false" id="MMVTCP" name="MMVTCP"
+                                 formControlName="MMVTCP" min="0" max="99"
+                                 oninput="this.value = this.value.slice(0, 2)" /></td>
+                        </tr>
+                     </table>
+                  </form>
+                  <form [formGroup]="formCUGEX" (ngSubmit)="onsubmit()" class="form-layout-compact" id="formCUGEX">
+                     <table class="form-table">
+                        <tr>
+                           <td><label for="DELPIC">{{ lang.get('CUGEX_FIELD_LABELS').DELPIC }}</label></td>
+                           <td><input type="number" class="lookup input-sm" data-init="false" id="DELPIC" name="DELPIC"
+                                 formControlName="DELPIC" min="0" max="999"
+                                 oninput="this.value = this.value.slice(0, 3)" /></td>
+                        </tr>
+                        <tr>
+                           <td><label for="DELGAM">{{ lang.get('CUGEX_FIELD_LABELS').DELGAM }}</label></td>
+                           <td><input type="number" class="lookup input-sm" data-init="false" id="DELGAM" name="DELGAM"
+                                 formControlName="DELGAM" min="0" max="999"
+                                 oninput="this.value = this.value.slice(0, 3)" /></td>
+                        </tr>
+                     </table>
+                  </form>
+                  <form [formGroup]="formMITNWL" (ngSubmit)="onsubmit()" class="form-layout-compact" id="formMITNWL"
+                     *ngIf="!hideFieldMITNWL">
+                     <table class="form-table">
+                        <tr>
+                           <td><label for="">LDF</label></td>
+                           <td> <input type="checkbox" class="checkbox" id="LDF" name="LDF"
+                                 formControlName="LDF" /><label style="margin-left: 125px; margin-top: 5px;" for="LDF"
+                                 class="checkbox-label"></label>
+                           </td>
+                        </tr>
+                     </table>
+                  </form>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>

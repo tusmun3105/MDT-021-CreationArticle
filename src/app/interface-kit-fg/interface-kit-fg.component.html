@@ -1,0 +1,373 @@
+<div style="background-color: aliceblue;">
+   <div class="row mainpageKIT" soho-busyindicator [blockUI]="true" [activated]="isBusyForm">
+      <div class="row" style="text-align: center;">
+         <div class="twelve columns" style="position: relative;">
+            <!-- Back button aligned to top-left -->
+            <button class="btn-primary" type="button" id="buttonPrev"
+               style="position: absolute; top: 0; right: 0; margin-top:10px" (click)="onsubmit()">
+               <svg class="icon" focusable="false" aria-hidden="true" role="presentation">
+                  <use href="#icon-add"></use>
+               </svg>
+               <span>{{lang.get('ButtonCreateLabel')}}</span>
+            </button>
+
+            <!-- Centered title -->
+            <h1 class="fieldset-title" style="text-align: center;">
+               {{ pageTitle }}
+               <span
+                  style="margin-left: 5px; color: black; font-weight: lighter; font-size: smaller; text-decoration: none; display: inline-block;">
+                  {{referenceModel}}</span>
+            </h1>
+         </div>
+      </div>
+      <div id="container">
+         <div class="five columns">
+            <form [formGroup]="formMITMAS" (ngSubmit)="onsubmit()" class="form-layout-compact" id="formMITMAS">
+               <table class="form-table">
+                  <tr>
+                     <td><label for="MMITNO" class="required">{{ lang.get('MITMAS_FIELD_LABELS').MMITNO }}</label></td>
+                     <td><input type="text" class="lookup" data-init="false" id="MMITNO" name="MMITNO"
+                           formControlName="MMITNO" maxlength="15" style="text-transform: uppercase;" /></td>
+                  </tr>
+                  <tr>
+                     <td>
+                        <label for="MMSTAT" class="label">{{ lang.get('MITMAS_FIELD_LABELS').MMSTAT }}</label>
+                     </td>
+                     <td>
+                        <select id="MMSTAT" name="MMSTAT" class="dropdown" formControlName="MMSTAT"
+                           data-automation-id="mmstat-dropdown">
+                           <option value="00">00</option>
+                           <option value="01">01</option>
+                           <option value="02">02</option>
+                           <option value="03">03</option>
+                           <option value="04">04</option>
+                           <option value="05">05</option>
+                           <option value="06">06</option>
+                           <option value="07">07</option>
+                           <option value="08">08</option>
+                           <option value="09">09</option>
+                           <option value="10">10</option>
+                           <option value="11">11</option>
+                           <option value="12">12</option>
+                           <option value="13">13</option>
+                           <option value="14">14</option>
+                           <option value="15">15</option>
+                           <option value="20">20</option>
+                           <option value="30">30</option>
+                           <option value="40">40</option>
+                           <option value="50">50</option>
+                           <option value="80">80</option>
+                           <option value="90">90</option>
+                           <option value="99">99</option>
+                        </select>
+                     </td>
+                  </tr>
+                  <tr>
+                     <td><label for="MMITDS">{{ lang.get('MITMAS_FIELD_LABELS').MMITDS }}</label></td>
+                     <td><input type="text" class="lookup" data-init="false" id="MMITDS" name="MMITDS"
+                           formControlName="MMITDS" maxlength="30" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="MMFUDS">{{ lang.get('MITMAS_FIELD_LABELS').MMFUDS }}</label></td>
+                     <td><input type="text" class="lookup" data-init="false" id="MMFUDS" name="MMFUDS"
+                           formControlName="MMFUDS" maxlength="60" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="MMPRGP">{{ lang.get('MITMAS_FIELD_LABELS').MMPRGP }}</label></td>
+                     <td><input type="text" class="lookup" data-init="false" id="MMPRGP" name="MMPRGP"
+                           formControlName="MMPRGP" maxlength="3" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="MMITGR">{{ lang.get('MITMAS_FIELD_LABELS').MMITGR }}</label></td>
+                     <td><input type="text" class="lookup" data-init="false" id="MMITGR" name="MMITGR"
+                           formControlName="MMITGR" maxlength="8" /></td>
+                  </tr>
+                  <tr [hidden]="hideFieldMITFAC">
+                     <td><label for="M9CSNO">{{ lang.get('MITFAC_FIELD_LABELS').M9CSNO }}</label></td>
+                     <td><input type="text" class="lookup" data-init="false" id="M9CSNO" name="M9CSNO"
+                           formControlName="M9CSNO" maxlength="16" /></td>
+                  </tr>
+                  <tr [hidden]="hideFieldMITFAC">
+                     <td><label for="M9ORCO">{{ lang.get('MITFAC_FIELD_LABELS').M9ORCO }}</label></td>
+                     <td><input type="text" class="lookup" data-init="false" id="M9ORCO" name="M9ORCO"
+                           formControlName="M9ORCO" maxlength="3" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="MMGRWE">{{ lang.get('MITMAS_FIELD_LABELS').MMGRWE }}</label></td>
+                     <td><input type="number" step="0.01" maxlength="17" class="lookup" data-init="false" id="MMGRWE"
+                           name="MMGRWE" formControlName="MMGRWE"
+                           oninput="if(this.value.length > 17) this.value = this.value.slice(0, 17)" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="MMCFI3">{{ lang.get('MITMAS_FIELD_LABELS').MMCFI3 }}</label></td>
+                     <td><input type="text" class="lookup" data-init="false" id="MMCFI3" name="MMCFI3"
+                           formControlName="MMCFI3" maxlength="3" /></td>
+                  </tr>
+                  <tr>
+                     <td><label for="MMDIGI">{{ lang.get('MITMAS_FIELD_LABELS').MMDIGI }}</label></td>
+                     <td><input type="text" class="lookup" data-init="false" id="MMDIGI" name="MMDIGI"
+                           formControlName="MMDIGI" maxlength="2" /></td>
+                  </tr>
+               </table>
+            </form>
+         </div>
+         <div class="seven columns">
+            <div class="row" *ngIf="!hideFieldMITLAD">
+               <form [formGroup]="formMITLAD" (ngSubmit)="onsubmit()" class="form-layout-compact" id="formMITLAD">
+                  <table class="form-table">
+                     <tr>
+                        <td><label for="LMCD_GB_ITDS">GB</label></td>
+                        <td><input type="text" id="LMCD_GB_ITDS" formControlName="LMCD_GB_ITDS" maxlength="60" /></td>
+                        <td><input type="text" id="LMCD_GB_FUDS" formControlName="LMCD_GB_FUDS" maxlength="120" /></td>
+                     </tr>
+                     <tr>
+                        <td><label for="LMCD_DE_ITDS">DE</label></td>
+                        <td><input type="text" id="LMCD_DE_ITDS" formControlName="LMCD_DE_ITDS" maxlength="60" /></td>
+                        <td><input type="text" id="LMCD_DE_FUDS" formControlName="LMCD_DE_FUDS" maxlength="120" /></td>
+                     </tr>
+                     <tr>
+                        <td><label for="LMCD_PL_ITDS">PL</label></td>
+                        <td><input type="text" id="LMCD_PL_ITDS" formControlName="LMCD_PL_ITDS" maxlength="60" /></td>
+                        <td><input type="text" id="LMCD_PL_FUDS" formControlName="LMCD_PL_FUDS" maxlength="120" /></td>
+                     </tr>
+                     <tr>
+                        <td><label for="LMCD_NL_ITDS">NL</label></td>
+                        <td><input type="text" id="LMCD_NL_ITDS" formControlName="LMCD_NL_ITDS" maxlength="60" /></td>
+                        <td><input type="text" id="LMCD_NL_FUDS" formControlName="LMCD_NL_FUDS" maxlength="120" /></td>
+                     </tr>
+                     <tr>
+                        <td><label for="LMCD_PT_ITDS">PT</label></td>
+                        <td><input type="text" id="LMCD_PT_ITDS" formControlName="LMCD_PT_ITDS" maxlength="60" /></td>
+                        <td><input type="text" id="LMCD_PT_FUDS" formControlName="LMCD_PT_FUDS" maxlength="120" /></td>
+                     </tr>
+                     <tr>
+                        <td><label for="LMCD_ES_ITDS">ES</label></td>
+                        <td><input type="text" id="LMCD_ES_ITDS" formControlName="LMCD_ES_ITDS" maxlength="60" /></td>
+                        <td><input type="text" id="LMCD_ES_FUDS" formControlName="LMCD_ES_FUDS" maxlength="120" /></td>
+                     </tr>
+                     <tr>
+                        <td><label for="LMCD_FR_ITDS">FR</label></td>
+                        <td><input type="text" id="LMCD_FR_ITDS" formControlName="LMCD_FR_ITDS" maxlength="60" /></td>
+                        <td><input type="text" id="LMCD_FR_FUDS" formControlName="LMCD_FR_FUDS" maxlength="120" /></td>
+                     </tr>
+                  </table>
+               </form>
+
+            </div>
+            <div class="row" style="margin-left:-25px;">
+               <div class="six columns" *ngIf="!hideFieldMITPOP">
+                  <form [formGroup]="formMITPOP" (ngSubmit)="onsubmit()" class="form-layout-compact" id="formMITPOP">
+                     <table class="form-table">
+                        <tr>
+                           <td><label for="POP1">{{ lang.get('MITPOP_FIELD_LABELS').POP1 }}</label></td>
+                           <td><input type="text" class="lookup input-sm" data-init="false" id="POP1" name="POP1"
+                                 formControlName="POP1" maxlength="30" style="margin-left: -25px;" /></td>
+                        </tr>
+                        <tr>
+                           <td><label for="POP2">{{ lang.get('MITPOP_FIELD_LABELS').POP2 }}</label></td>
+                           <td><input type="text" class="lookup input-sm" data-init="false" id="POP2" name="POP2"
+                                 formControlName="POP2" maxlength="13" style="margin-left: -25px;" /></td>
+                        </tr>
+                     </table>
+                  </form>
+               </div>
+               <div class="six columns">
+                  <form [formGroup]="formMITFAC" (ngSubmit)="onsubmit()" class="form-layout-compact" id="formMITFAC">
+                     <table class="form-table">
+                        <tr>
+                           <td><label for="M9ACRF">{{ lang.get('MITFAC_FIELD_LABELS').M9ACRF }}</label></td>
+                           <td><input type="text" class="lookup input-sm" data-init="false" id="M9ACRF" name="M9ACRF"
+                                 formControlName="M9ACRF" maxlength="8" /></td>
+                        </tr>
+                        <tr>
+                           <td><label for="MMITTY">{{ lang.get('MITMAS_FIELD_LABELS').MMITTY }}</label></td>
+                           <td><input type="text" class="lookup input-sm" data-init="false" id="MMITTY" name="MMITTY"
+                                 formControlName="MMITTY" maxlength="3" /></td>
+                        </tr>
+                        <tr>
+                           <td><label for="MMVTCP">{{ lang.get('MITMAS_FIELD_LABELS').MMVTCP }}</label></td>
+                           <td><input type="number" class="lookup input-sm" data-init="false" id="MMVTCP" name="MMVTCP"
+                                 formControlName="MMVTCP" min="0" max="99"
+                                 oninput="this.value = this.value.slice(0, 2)" /></td>
+                        </tr>
+                     </table>
+                  </form>
+                  <form [formGroup]="formCUGEX" (ngSubmit)="onsubmit()" class="form-layout-compact" id="formCUGEX">
+                     <table class="form-table">
+                        <tr>
+                           <td><label for="DELPIC">{{ lang.get('CUGEX_FIELD_LABELS').DELPIC }}</label></td>
+                           <td><input type="number" class="lookup input-sm" data-init="false" id="DELPIC" name="DELPIC"
+                                 formControlName="DELPIC" min="0" max="999"
+                                 oninput="this.value = this.value.slice(0, 3)" /></td>
+                        </tr>
+                        <tr>
+                           <td><label for="DELGAM">{{ lang.get('CUGEX_FIELD_LABELS').DELGAM }}</label></td>
+                           <td><input type="number" class="lookup input-sm" data-init="false" id="DELGAM" name="DELGAM"
+                                 formControlName="DELGAM" min="0" max="999"
+                                 oninput="this.value = this.value.slice(0, 3)" /></td>
+                        </tr>
+                     </table>
+                  </form>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <!-- Status for progress FG-->
+      <div class="twelve columns" *ngIf="pageTitle !== 'KIT'">
+         <div class="process-indicator compact responsive has-labels">
+            <div class="display">
+               <div class="step">
+                  <span class="label">{{ lang.get('PROGRESS_BAR').VALIDATION_FIELD }}</span>
+                  <div class="lines">
+                     <span class="indicator icon">
+                        <svg class="icon" [ngClass]="validateFieldsFG?.substring(1)" aria-hidden="true"
+                           role="presentation">
+                           <use [attr.href]="validateFieldsFG || '#icon-empty-circle'"></use>
+                        </svg>
+                     </span>
+                     <span class="separator" [ngClass]="validateStepFG ? 'darker' : ''"></span>
+                  </div>
+               </div>
+               <div class="step">
+                  <span class="label">{{ lang.get('PROGRESS_BAR').COPY_ITEM_BASIC }}</span>
+                  <div class="lines">
+                     <span class="indicator icon">
+                        <svg class="icon" [ngClass]="copyItemBasicFG?.substring(1)" aria-hidden="true"
+                           role="presentation">
+                           <use [attr.href]="copyItemBasicFG || '#icon-empty-circle'"></use>
+                        </svg>
+                     </span>
+                     <span class="separator" [ngClass]="copyItemBasicStepFG ? 'darker' : ''"></span>
+                  </div>
+               </div>
+               <div class="step">
+                  <span class="label">{{ lang.get('PROGRESS_BAR').UPDATE_ITEM_PRICE }}</span>
+                  <div class="lines">
+                     <span class="indicator icon">
+                        <svg class="icon" [ngClass]="iconUpdatePriceFG?.substring(1)" aria-hidden="true"
+                           role="presentation">
+                           <use [attr.href]="iconUpdatePriceFG || '#icon-empty-circle'"></use>
+                        </svg>
+                     </span>
+                     <span class="separator" [ngClass]="updateItemBasicStepFG ? 'darker' : ''"></span>
+                  </div>
+               </div>
+               <div class="step">
+                  <span class="label">{{ lang.get('PROGRESS_BAR').ADD_CUGEX }}</span>
+                  <div class="lines">
+                     <span class="indicator icon">
+                        <svg class="icon" [ngClass]="iconCUGEX1FG?.substring(1)" aria-hidden="true" role="presentation">
+                           <use [attr.href]="iconCUGEX1FG || '#icon-empty-circle'"></use>
+                        </svg>
+                     </span>
+                     <span class="separator" [ngClass]="addToCugex1StepFG ? 'darker' : ''"></span>
+                  </div>
+               </div>
+               <div class="step">
+                  <span class="label">{{ lang.get('PROGRESS_BAR').LANGUAGE_MMS030 }}</span>
+                  <div class="lines">
+                     <span class="indicator icon">
+                        <svg class="icon" [ngClass]="iconLanguageFG?.substring(1)" aria-hidden="true"
+                           role="presentation">
+                           <use [attr.href]="iconLanguageFG || '#icon-empty-circle'"></use>
+                        </svg>
+                     </span>
+                     <span class="separator" [ngClass]="languageFG ? 'darker' : ''"></span>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      <!-- Status for progress KIT-->
+      <div class="twelve columns" *ngIf="pageTitle == 'KIT'">
+         <div class="process-indicator compact responsive has-labels">
+            <div class="display">
+               <div class="step">
+                  <span class="label">{{ lang.get('PROGRESS_BAR').VALIDATION_FIELD }}</span>
+                  <div class="lines">
+                     <span class="indicator icon">
+                        <svg class="icon" [ngClass]="iconValidateFieldsKIT?.substring(1)" aria-hidden="true"
+                           role="presentation">
+                           <use [attr.href]="iconValidateFieldsKIT || '#icon-empty-circle'"></use>
+                        </svg>
+                     </span>
+                     <span class="separator" [ngClass]="validateFieldsKIT ? 'darker' : ''"></span>
+                  </div>
+               </div>
+               <div class="step">
+                  <span class="label">{{ lang.get('PROGRESS_BAR').COPY_ITEM_BASIC }}</span>
+                  <div class="lines">
+                     <span class="indicator icon">
+                        <svg class="icon" [ngClass]="iconCopyItemBasicKIT?.substring(1)" aria-hidden="true"
+                           role="presentation">
+                           <use [attr.href]="iconCopyItemBasicKIT || '#icon-empty-circle'"></use>
+                        </svg>
+                     </span>
+                     <span class="separator" [ngClass]="copyItemBasicKIT ? 'darker' : ''"></span>
+                  </div>
+               </div>
+               <div class="step">
+                  <span class="label">{{ lang.get('PROGRESS_BAR').COPY_ITEM_FACILITY }}</span>
+                  <div class="lines">
+                     <span class="indicator icon">
+                        <svg class="icon" [ngClass]="iconCopyItemFacilityKIT?.substring(1)" aria-hidden="true"
+                           role="presentation">
+                           <use [attr.href]="iconCopyItemFacilityKIT || '#icon-empty-circle'"></use>
+                        </svg>
+                     </span>
+                     <span class="separator" [ngClass]="copyItemFacilityKIT ? 'darker' : ''"></span>
+                  </div>
+               </div>
+               <div class="step">
+                  <span class="label">{{ lang.get('PROGRESS_BAR').UPDATE_ITEM_PRICE }}</span>
+                  <div class="lines">
+                     <span class="indicator icon">
+                        <svg class="icon" [ngClass]="iconUpdateItemPriceKIT?.substring(1)" aria-hidden="true"
+                           role="presentation">
+                           <use [attr.href]="iconUpdateItemPriceKIT || '#icon-empty-circle'"></use>
+                        </svg>
+                     </span>
+                     <span class="separator" [ngClass]="updateItemPriceKIT ? 'darker' : ''"></span>
+                  </div>
+               </div>
+               <div class="step">
+                  <span class="label">{{ lang.get('PROGRESS_BAR').ADD_CUGEX }}</span>
+                  <div class="lines">
+                     <span class="indicator icon">
+                        <svg class="icon" [ngClass]="iconCUGEX1KIT?.substring(1)" aria-hidden="true"
+                           role="presentation">
+                           <use [attr.href]="iconCUGEX1KIT || '#icon-empty-circle'"></use>
+                        </svg>
+                     </span>
+                     <span class="separator" [ngClass]="cugex1KIT ? 'darker' : ''"></span>
+                  </div>
+               </div>
+               <div class="step">
+                  <span class="label">{{ lang.get('PROGRESS_BAR').LANGUAGE_MMS030 }}</span>
+                  <div class="lines">
+                     <span class="indicator icon">
+                        <svg class="icon" [ngClass]="iconLanguageKIT?.substring(1)" aria-hidden="true"
+                           role="presentation">
+                           <use [attr.href]="iconLanguageKIT || '#icon-empty-circle'"></use>
+                        </svg>
+                     </span>
+                     <span class="separator" [ngClass]="languageKIT ? 'darker' : ''"></span>
+                  </div>
+               </div>
+               <div class="step">
+                  <span class="label">{{ lang.get('PROGRESS_BAR').ADD_ALIAS }}</span>
+                  <div class="lines">
+                     <span class="indicator icon">
+                        <svg class="icon" [ngClass]="iconAliasKIT?.substring(1)" aria-hidden="true" role="presentation">
+                           <use [attr.href]="iconAliasKIT || '#icon-empty-circle'"></use>
+                        </svg>
+                     </span>
+                     <span class="separator" [ngClass]="aliasKIT ? 'darker' : ''"></span>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>

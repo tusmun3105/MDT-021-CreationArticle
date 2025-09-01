@@ -1,0 +1,199 @@
+{
+  "GB": {
+    "appName": "MDT-021: Item Creation",
+    "appContent": "The APIs used in the program are as follows",
+    "panelKITTitle": "KIT",
+    "panelFGTitle": "General Expenses",
+    "mandatoryMessageItem": "Mandatory Field!",
+    "itemNotFoundInWarehouseErrorMessage": "Item does not exist in the warehouse!",
+    "MITMAS_FIELD_LABELS": {
+      "MMITNO": "Item Code",
+      "MMSTAT": "Status",
+      "MMITDS": "Short Description",
+      "MMFUDS": "Long Description",
+      "MMPRGP": "Purchase Group",
+      "MMVTCP": "VAT Code (Purch)",
+      "MMITTY": "Item Type",
+      "MMGRWE": "Weight",
+      "MMCFI3": "Material",
+      "MMDIGI": "Discount Scale",
+      "MMITGR": "Item Group",
+      "MMWAPC": "% Losses",
+      "MMILEN": "Length (m)",
+      "MMIWID": "Width (m)",
+      "MMDWNO": "Plan number"
+    },
+    "MITBAL_FIELD_LABELS": {
+      "MBWHLO": "Warehouse"
+    },
+    "MITPOP_FIELD_LABELS": {
+      "POP1": "Alias",
+      "POP2": "EAN13"
+    },
+    "MITFAC_FIELD_LABELS": {
+      "M9CSNO": "Customs Tariff",
+      "M9ORCO": "Country of Origin",
+      "M9ACRF": "Acc Ctrl Obj",
+      "M9VAMT": "Inv Cal Meth"
+    },
+    "CUGEX_FIELD_LABELS": {
+      "DELPIC": "PIC Lead Time",
+      "DELGAM": "Rout Lead Time  "
+    },
+    "CECOCI_FIELD_LABELS": {
+      "CIECRG": "Eco-Organism",
+      "CIECOP": "Eco-Contribution"
+    },
+    "TX15": "Name",
+    "TX40": "Description",
+    "ButtonCreateLabel": "Add Item",
+    "HEADER_TITLE_CODE_AQ": {
+      "Title": "Acquisition Code",
+      "1": "Manufacturing",
+      "2": "Purchasing",
+      "3": "Distribution from another warehouse"
+    },
+    "HEADER_TITLE_METH_PLAN": {
+      "Title": "Planning Method",
+      "0": "Manual",
+      "1": "MRP",
+      "2": "ROP per item/warehouse",
+      "3": "Order-driven (triggered by requirement)",
+      "4": "ROP per item/facility",
+      "5": "ROP per item/global facility"
+    },
+    "HEADER_TITLE_PLAN_POL": {
+      "Title": "Planning Policy"
+    },
+    "REFERENCE_TITLE": {
+      "1": "Manufactured Reference",
+      "2": "Purchased Reference",
+      "3": "Distribution Reference"
+    },
+    "REFERENCE_MODEL": {
+      "1": "(Reference Model : T111000000)",
+      "2": "(Reference Model : T112000000)",
+      "3": "(Reference Model : T113000000)",
+      "FG": "(Reference Model : T100200000)",
+      "KIT": "(Reference Model : T100100000)"
+    },
+    "PROGRESS_BAR": {
+      "VALIDATION_FIELD": "Validate Fields",
+      "COPY_ITEM_BASIC": "Copy Item Basic",
+      "COPY_ITEM_FACILITY": "Copy Item Facility",
+      "UPDATE_ITEM_PRICE": "Update Item Price",
+      "ADD_CUGEX": "Add CUGEX",
+      "LANGUAGE_MMS030": "Language - MMS030",
+      "ADD_ALIAS": "Add Alias"
+    },
+    "ERROR_TYPE": {
+      "SUCCESS": "Success",
+      "ERROR": "Error",
+      "ALREADY_EXIST": "Already exists",
+      "ERROR_EAN13": "The EAN13 code is invalid. The 13th character does not match",
+      "NO_CHARS_EAN13": "The number of characters in the EAN13 field must be 13",
+      "NOT_VALID": "is not valid",
+      "MANDATORY_FIELD": "is required",
+      "CREATED_WITH_SUCCESS": "was created successfully"
+    }
+  },
+  "FR": {
+    "appName": "MDT-021: Création d’Article",
+    "appContent": "Les API utilisées dans le programme sont les suivantes",
+    "panelKITTitle": "KIT",
+    "panelFGTitle": "Frais généraux",
+    "mandatoryMessageItem": "Champ obligatoire!",
+    "itemNotFoundInWarehouseErrorMessage": "L'article n'existe pas dans le dépôt!",
+    "MITMAS_FIELD_LABELS": {
+      "MMITNO": "Code article",
+      "MMSTAT": "Statut",
+      "MMITDS": "Dés. courte",
+      "MMFUDS": "Dés. longue",
+      "MMPRGP": "Grp Appro",
+      "MMVTCP": "Code TVA (ach)",
+      "MMITTY": "Type d'article",
+      "M9ORCO": "Pays d'origine",
+      "MMGRWE": "Poids",
+      "MMCFI3": "Matière",
+      "MMDIGI": "Barème de remise",
+      "MMITGR": "Groupe d'article",
+      "MMWAPC": "% Pertes",
+      "MMILEN": "Longueur ht (m)",
+      "MMIWID": "Largeur ht (m)",
+      "MMDWNO": "N° de plan"
+    },
+    "MITBAL_FIELD_LABELS": {
+      "MBWHLO": "Dépôt"
+    },
+    "MITPOP_FIELD_LABELS": {
+      "POP1": "Alias",
+      "POP2": "EAN13"
+    },
+    "MITFAC_FIELD_LABELS": {
+      "M9CSNO": "Nomenclature douanière",
+      "M9ORCO": "Pays d'origine",
+      "M9ACRF": "Obj ctrl compta",
+      "M9VAMT": "Meth cpt stk"
+    },
+    "CUGEX_FIELD_LABELS": {
+      "DELPIC": "Délai PIC",
+      "DELGAM": "Délai gamme"
+    },
+    "CECOCI_FIELD_LABELS": {
+      "CIECRG": "Eco-Organisme",
+      "CIECOP": "Eco-Contribution"
+    },
+    "TX15": "Nom",
+    "TX40": "Désignation",
+    "ButtonCreateLabel": "Ajouter Article",
+    "HEADER_TITLE_CODE_AQ": {
+      "Title": "Code d'acquisition",
+      "1": "Fabrication",
+      "2": "Achat",
+      "3": "Distribution depuis un autre dépôt"
+    },
+    "HEADER_TITLE_METH_PLAN": {
+      "Title": "Méthode de planification",
+      "0": "Manuelle",
+      "1": "MRP (Planification des besoins en composants)",
+      "2": "Point de commande (ROP) par article/dépôt",
+      "3": "Pilotée par commande (déclenchée par un besoin)",
+      "4": "Point de commande (ROP) par article/site",
+      "5": "Point de commande (ROP) par article/site global"
+    },
+    "HEADER_TITLE_PLAN_POL": {
+      "Title": "Politique de planification"
+    },
+    "REFERENCE_TITLE": {
+      "1": "Référence fabriquée",
+      "2": "Référence achetée",
+      "3": "Référence distribuée"
+    },
+    "REFERENCE_MODEL": {
+      "1": "(Réf Modèle : T111000000)",
+      "2": "(Réf Modèle : T112000000)",
+      "3": "(Réf Modèle : T113000000)",
+      "FG": "(Réf Modèle : T100200000)",
+      "KIT": "(Réf Modèle : T100100000)"
+    },
+    "PROGRESS_BAR": {
+      "VALIDATION_FIELD": "Valider les champs",
+      "COPY_ITEM_BASIC": "Copier les informations de l'article",
+      "COPY_ITEM_FACILITY": "Copier les informations de l'établissement",
+      "UPDATE_ITEM_PRICE": "Mettre à jour le prix de l'article",
+      "ADD_CUGEX": "Ajouter CUGEX",
+      "LANGUAGE_MMS030": "Langue - MMS030",
+      "ADD_ALIAS": "Ajouter un alias"
+    },
+    "ERROR_TYPE": {
+      "SUCCESS": "Succès",
+      "ERROR": "Erreur",
+      "ALREADY_EXIST": "Existe déjà",
+      "ERROR_EAN13": "Le code EAN13 est invalide. Le 13ème caractère ne correspond pas",
+      "NO_CHARS_EAN13": "Le nombre de caractères du champ EAN13 doit être égal à 13",
+      "NOT_VALID": "n’est pas valide",
+      "MANDATORY_FIELD": "est obligatoire",
+      "CREATED_WITH_SUCCESS": "a été créé avec succès"
+    }
+  }
+}

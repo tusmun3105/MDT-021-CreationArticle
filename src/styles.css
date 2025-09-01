@@ -1,0 +1,35 @@
+/* You can add global styles to this file, and also import other style files */
+body {
+  overflow-y: hidden !important;
+  overflow-x: hidden !important;
+  background-color: aliceblue !important;
+}
+
+.center-wrapper {
+  background-color: black !important;
+}
+
+.dropdown-wrapper {
+  margin-bottom: 0px !important;
+}
+
+.dropdown {
+  background-color: #ffecca !important;
+}
+
+.lookup-wrapper {
+  margin-bottom: 0px !important;
+}
+
+#M9VAMT-dropdown,
+#MMSTAT-dropdown {
+  max-width: 100px;
+}
+
+.lookup-wrapper {
+  width: unset !important;
+}
+
+.datepicker + .trigger {
+  position: static !important;
+}
