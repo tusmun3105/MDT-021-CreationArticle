@@ -52,12 +52,12 @@
                            <option value="13">13</option>
                            <option value="14">14</option>
                            <option value="15">15</option>
-                           <option value="20">20</option>
+                           <!-- <option value="20">20</option>
                            <option value="30">30</option>
                            <option value="40">40</option>
                            <option value="50">50</option>
                            <option value="80">80</option>
-                           <option value="90">90</option>
+                           <option value="90">90</option>-->
                            <option value="99">99</option>
                         </select>
                      </td>
@@ -76,21 +76,25 @@
                      <td><label for="MMPRGP">{{ lang.get('MITMAS_FIELD_LABELS').MMPRGP }}</label></td>
                      <td><input type="text" class="lookup" data-init="false" id="MMPRGP" name="MMPRGP"
                            formControlName="MMPRGP" maxlength="3" /></td>
+                     <span><span id="MMPRGPSelectedValue" class="selectedItem"></span></span>
                   </tr>
                   <tr>
                      <td><label for="MMITGR">{{ lang.get('MITMAS_FIELD_LABELS').MMITGR }}</label></td>
                      <td><input type="text" class="lookup" data-init="false" id="MMITGR" name="MMITGR"
                            formControlName="MMITGR" maxlength="8" /></td>
+                     <span><span id="MMITGRSelectedValue" class="selectedItem"></span></span>
                   </tr>
                   <tr [hidden]="hideFieldMITFAC">
                      <td><label for="M9CSNO">{{ lang.get('MITFAC_FIELD_LABELS').M9CSNO }}</label></td>
                      <td><input type="text" class="lookup" data-init="false" id="M9CSNO" name="M9CSNO"
                            formControlName="M9CSNO" maxlength="16" /></td>
+                     <span><span id="M9CSNOSelectedValue" class="selectedItem"></span></span>
                   </tr>
                   <tr [hidden]="hideFieldMITFAC">
                      <td><label for="M9ORCO">{{ lang.get('MITFAC_FIELD_LABELS').M9ORCO }}</label></td>
                      <td><input type="text" class="lookup" data-init="false" id="M9ORCO" name="M9ORCO"
                            formControlName="M9ORCO" maxlength="3" /></td>
+                     <span><span id="M9ORCOSelectedValue" class="selectedItem"></span></span>
                   </tr>
                   <tr>
                      <td><label for="MMGRWE">{{ lang.get('MITMAS_FIELD_LABELS').MMGRWE }}</label></td>
@@ -102,11 +106,13 @@
                      <td><label for="MMCFI3">{{ lang.get('MITMAS_FIELD_LABELS').MMCFI3 }}</label></td>
                      <td><input type="text" class="lookup" data-init="false" id="MMCFI3" name="MMCFI3"
                            formControlName="MMCFI3" maxlength="3" /></td>
+                     <span><span id="MMCFI3SelectedValue" class="selectedItem"></span></span>
                   </tr>
                   <tr>
                      <td><label for="MMDIGI">{{ lang.get('MITMAS_FIELD_LABELS').MMDIGI }}</label></td>
                      <td><input type="text" class="lookup" data-init="false" id="MMDIGI" name="MMDIGI"
                            formControlName="MMDIGI" maxlength="2" /></td>
+                     <span><span id="MMDIGISelectedValue" class="selectedItem"></span></span>
                   </tr>
                </table>
             </form>
@@ -155,7 +161,7 @@
 
             </div>
             <div class="row" style="margin-left:-25px;">
-               <div class="six columns" *ngIf="!hideFieldMITPOP">
+               <div class="six columns">
                   <form [formGroup]="formMITPOP" (ngSubmit)="onsubmit()" class="form-layout-compact" id="formMITPOP">
                      <table class="form-table">
                         <tr>
@@ -178,21 +184,25 @@
                            <td><label for="M9ACRF">{{ lang.get('MITFAC_FIELD_LABELS').M9ACRF }}</label></td>
                            <td><input type="text" class="lookup input-sm" data-init="false" id="M9ACRF" name="M9ACRF"
                                  formControlName="M9ACRF" maxlength="8" /></td>
+                           <span><span id="M9ACRFSelectedValue" class="selectedItem"></span></span>
                         </tr>
                         <tr>
                            <td><label for="MMITTY">{{ lang.get('MITMAS_FIELD_LABELS').MMITTY }}</label></td>
                            <td><input type="text" class="lookup input-sm" data-init="false" id="MMITTY" name="MMITTY"
                                  formControlName="MMITTY" maxlength="3" /></td>
+                           <span><span id="MMITTYSelectedValue" class="selectedItem"></span></span>
                         </tr>
                         <tr>
                            <td><label for="MMVTCP">{{ lang.get('MITMAS_FIELD_LABELS').MMVTCP }}</label></td>
                            <td><input type="number" class="lookup input-sm" data-init="false" id="MMVTCP" name="MMVTCP"
                                  formControlName="MMVTCP" min="0" max="99"
                                  oninput="this.value = this.value.slice(0, 2)" /></td>
+                           <span><span id="MMVTCPSelectedValue" class="selectedItem"></span></span>
                         </tr>
                      </table>
                   </form>
-                  <form [formGroup]="formCUGEX" (ngSubmit)="onsubmit()" class="form-layout-compact" id="formCUGEX">
+                  <form [formGroup]="formCUGEX" (ngSubmit)="onsubmit()" class="form-layout-compact" id="formCUGEX"
+                     [hidden]="hideFieldCUGEX">
                      <table class="form-table">
                         <tr>
                            <td><label for="DELPIC">{{ lang.get('CUGEX_FIELD_LABELS').DELPIC }}</label></td>
@@ -254,17 +264,6 @@
                   </div>
                </div>
                <div class="step">
-                  <span class="label">{{ lang.get('PROGRESS_BAR').ADD_CUGEX }}</span>
-                  <div class="lines">
-                     <span class="indicator icon">
-                        <svg class="icon" [ngClass]="iconCUGEX1FG?.substring(1)" aria-hidden="true" role="presentation">
-                           <use [attr.href]="iconCUGEX1FG || '#icon-empty-circle'"></use>
-                        </svg>
-                     </span>
-                     <span class="separator" [ngClass]="addToCugex1StepFG ? 'darker' : ''"></span>
-                  </div>
-               </div>
-               <div class="step">
                   <span class="label">{{ lang.get('PROGRESS_BAR').LANGUAGE_MMS030 }}</span>
                   <div class="lines">
                      <span class="indicator icon">
@@ -274,6 +273,17 @@
                         </svg>
                      </span>
                      <span class="separator" [ngClass]="languageFG ? 'darker' : ''"></span>
+                  </div>
+               </div>
+               <div class="step">
+                  <span class="label">{{ lang.get('PROGRESS_BAR').ADD_ALIAS }}</span>
+                  <div class="lines">
+                     <span class="indicator icon">
+                        <svg class="icon" [ngClass]="iconAliasFG?.substring(1)" aria-hidden="true" role="presentation">
+                           <use [attr.href]="iconAliasFG || '#icon-empty-circle'"></use>
+                        </svg>
+                     </span>
+                     <span class="separator" [ngClass]="aliasFG ? 'darker' : ''"></span>
                   </div>
                </div>
             </div>

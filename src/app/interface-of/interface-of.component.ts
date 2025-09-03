@@ -43,8 +43,8 @@ export class InterfaceOFComponent implements OnInit {
    respDIGI = [];
    respCFI3 = [];
    respDWNO = [];
-   respECOP = [];
    respECRG = [];
+   respENS015 = [];
    respUSID = [];
    respGRTS = [];
    respSUNO = [];
@@ -143,6 +143,8 @@ export class InterfaceOFComponent implements OnInit {
    respItemBasicMMS001: any;
    respItemBasicMMS002: any;
    respItemBasicMMS003: any;
+   respItemENS015: any;
+   respItemENS025: any;
    respAlias: any;
    respCugex: any;
 
@@ -160,16 +162,52 @@ export class InterfaceOFComponent implements OnInit {
          this.respItemBasicMMS001,
          this.respItemBasicMMS002,
          this.respAlias,
-         this.respCugex
+         this.respCugex,
+         this.respItemENS025
       ] = await Promise.all([
          this.shared.call_MMS200_GetItem(window.history.state?.ITNOREF || ''),
          this.shared.call_MMS200_GetItmWhsBasic(window.history.state?.WHLO || '', window.history.state?.ITNOREF || ''),
          this.shared.call_MMS025_LstAlias(window.history.state?.ITNOREF || ''),
-         this.shared.call_CUSEXT_GetFieldValue("MITMAS", window.history.state.ITNOREF)
+         this.shared.call_CUSEXT_GetFieldValue("MITMAS", window.history.state.ITNOREF),
+         this.shared.call_ListECO_Product(`CIECRG, CIECRG from CECOCI where CICONO = ${this.shared.userContext.currentCompany} and CIITNO = ${window.history.state.ITNOREF} and CICSOR = FR`),
       ]);
       if (this.respItemBasicMMS002.length > 0) {
          this.respItemBasicMMS003 = await this.shared.call_MMS200_GetItmFac(this.respItemBasicMMS002[0]?.FACI || '', window.history.state?.ITNOREF || '');
       }
+      let rawECRG = "";
+      if (this.respItemENS025?.length > 0) {
+         const repl = this.respItemENS025?.[0]?.REPL ?? "";
+         rawECRG = repl.split(";")[0] || "";
+
+         this.formMITMAS.patchValue({
+            CIECRG: rawECRG.trim()
+         });
+      }
+
+      if (rawECRG != "") {
+         const respENS015 = await this.shared.call_ListECO_Product(`CEECOC, CETX15, CETX40 from CECOCC where CECONO = ${this.shared.userContext.currentCompany} and CEECRG = ${rawECRG} and CECSOR = FR`);
+         if (respENS015.length > 0) {
+            const repl = respENS015?.[0]?.REPL ?? "";
+            const ECOP = repl.split(";")[0] || "";
+            this.formMITMAS.patchValue({
+               CIECOP: ECOP.trim()
+            });
+            this.respENS015 = (respENS015 || []).map(item => {
+               const [ECOP = "", TX15 = "", TX40 = ""] = (item.REPL || "").split(";");
+               return {
+                  ECOP: ECOP.trim(),
+                  TX15: TX15.trim(),
+                  TX40: TX40.trim(),
+               };
+            });
+            this.lookupECOP?.updateDataset(this.respENS015);
+         }
+         else {
+            this.lookupECOP?.updateDataset([]);
+         }
+      }
+
+
       if (this.respItemBasicMMS001.length > 0 && this.respItemBasicMMS002.length > 0 && this.respItemBasicMMS003.length > 0) {
          const itemBasic = this.respItemBasicMMS001[0];
          const itemFacBasic = this.respItemBasicMMS003[0];
@@ -188,8 +226,6 @@ export class InterfaceOFComponent implements OnInit {
             MMDWNO: itemBasic?.DWNO || "",
             M9CSNO: itemFacBasic?.CSNO || "",
             M9ORCO: itemFacBasic?.ORCO || "",
-            CIECRG: itemBasic?.ECRG || "",
-            CIECOP: itemBasic?.ECOP || "",
             MMGRWE: itemBasic?.GRWE || "",
             MMCFI3: itemBasic?.CFI3 || "",
             MMDIGI: itemBasic?.DIGI || ""
@@ -199,15 +235,15 @@ export class InterfaceOFComponent implements OnInit {
             MBRESP: itemWhsBasic?.RESP || "",
             MBBUYE: itemWhsBasic?.BUYE || "",
             MBSUNO: itemWhsBasic?.SUNO || "",
-            MMGRTS: itemWhsBasic?.GRTS || "",
+            MMGRTS: itemBasic?.GRTS || "",
             MBWHSL: itemWhsBasic?.WHSL || "",
          });
 
          this.formMITFAC.patchValue({
-            M9ACRF: itemFacBasic?.CSNO || "",
-            M9VAMT: itemFacBasic?.VAMT || "",
+            M9ACRF: itemFacBasic?.ACRF || "",
+            M9VAMT: itemFacBasic?.VAMT || "0",
             MMITTY: itemBasic?.ITTY || "",
-            MMVTCP: itemBasic?.VTCP || "",
+            MMVTCP: (itemBasic.VTCP ?? 0).toString().padStart(2, '0') || "00"
          });
          if (this.respAlias.length > 0 && !this.respAlias[0]?.error) {
             const alias = this.respAlias[0];
@@ -221,7 +257,7 @@ export class InterfaceOFComponent implements OnInit {
          if (this.respCugex.length > 0 && !this.respCugex[0]?.error) {
             this.formMITPOP.patchValue({
                POP1: this.respCugex[0]?.N096,
-               POP2: this.respCugex[0]?.N196
+               POP2: this.respCugex[0]?.N296
             });
 
          }
@@ -316,12 +352,11 @@ export class InterfaceOFComponent implements OnInit {
          reload: 'none'
       });
 
-      const setDeaultSTAT = $('#MMSTAT').data('dropdown');
+      const setDeaultSTAT = $('#M9VAMT').data('dropdown');
       setDeaultSTAT?.setCode('10');
 
       $('#MMSTAT').on('change.test', (e) => {
          const newVal = $(e.target).find(':checked').val();
-         console.log(newVal);
          this.formMITMAS.patchValue({
             MMSTAT: newVal.toString()
          });
@@ -329,7 +364,6 @@ export class InterfaceOFComponent implements OnInit {
 
       $('#M9VAMT').on('change.test', (e) => {
          const newVal = $(e.target).find(':checked').val();
-         console.log(newVal);
          this.formMITFAC.patchValue({
             M9VAMT: newVal.toString()
          });
@@ -337,7 +371,13 @@ export class InterfaceOFComponent implements OnInit {
 
    }
    async onsubmit() {
-
+      console.log("this.formMITMAS.value", this.formMITMAS.value)
+      console.log("this.formMITFAC.value", this.formMITFAC.value)
+      console.log("this.formMITBAL.value", this.formMITBAL.value)
+      console.log("this.formMITLAD.value", this.formMITLAD.value)
+      console.log("this.formMITPOP.value", this.formMITPOP.value)
+      console.log("this.formCUGEX.value", this.formCUGEX.value)
+      this.validateFields();
    }
 
    initializeLookups() {
@@ -369,7 +409,6 @@ export class InterfaceOFComponent implements OnInit {
          { key: 'WHSL', inputId: 'MBWHSL', colId: 'WHSL', labelSet: columnNamesCecoci },//
 
       ];
-
       fields.forEach(field => {
          let columns = [
             { id: field.colId, name: field.labelSet[field.inputId], field: field.colId, formatter: Soho.Formatters.Text, filterType: 'text' },
@@ -381,6 +420,7 @@ export class InterfaceOFComponent implements OnInit {
          if (removeTX40For.includes(field.colId)) {
             columns = columns.filter(col => col.id !== "TX40");
          }
+
          const lookupInstance = $(`#${field.inputId}`).lookup({
             field: field.colId,
             autoApply: true,
@@ -470,7 +510,6 @@ export class InterfaceOFComponent implements OnInit {
          this.respDIGI,
          this.respCFI3,
          this.respDWNO,
-         this.respECOP,
          this.respECRG,
          this.respUSID,
          this.respGRTS,
@@ -488,7 +527,6 @@ export class InterfaceOFComponent implements OnInit {
          this.shared.call_EXPORT_LstItemDiscountGroup(),
          this.shared.call_EXPORT_LstItemMatiereCFI3(),
          this.shared.call_CRS230_LstDocID(),
-         this.shared.call_ENS015_LstEcoContri(),
          this.shared.call_ENS010_LstEcoOrg(),
          this.shared.call_MNS150_LstResp(),
          this.shared.call_MMS043__LstDistributionGroupTech(),
@@ -507,7 +545,7 @@ export class InterfaceOFComponent implements OnInit {
       this.lookupDIGI?.updateDataset(this.respDIGI.length > 0 && this.respDIGI[0].error ? [] : this.respDIGI);
       this.lookupCFI3?.updateDataset(this.respCFI3.length > 0 && this.respCFI3[0].error ? [] : this.respCFI3);
       this.lookupDWNO?.updateDataset(this.respDWNO.length > 0 && this.respDWNO[0].error ? [] : this.respDWNO);
-      this.lookupECOP?.updateDataset(this.respECOP.length > 0 && this.respECOP[0].error ? [] : this.respECOP);
+      this.lookupECOP?.updateDataset([]);
       this.lookupECRG?.updateDataset(this.respECRG.length > 0 && this.respECRG[0].error ? [] : this.respECRG);
       this.lookupUSID?.updateDataset(this.respUSID.length > 0 && this.respUSID[0].error ? [] : this.respUSID);
       this.lookupBUYE?.updateDataset(this.respUSID.length > 0 && this.respUSID[0].error ? [] : this.respUSID);
@@ -548,7 +586,6 @@ export class InterfaceOFComponent implements OnInit {
 
 
       // Set planning policy value
-      console.log("puit", puit)
       this.planningPolicyValue = window.history.state?.PLCD || '';
       if (puit == "1" || puit == "3") {
          this.hideFieldMITVEN = true;
@@ -597,5 +634,84 @@ export class InterfaceOFComponent implements OnInit {
             }
          }
       });
+   }
+   async validateFields(): Promise<{ valid: boolean; itemBasic: any }> {
+      const values = {
+         MMITNO: (this.formMITMAS.value.MMITNO ?? '').toString().trim()?.toUpperCase(),
+         MMPRGP: (this.formMITMAS.value.MMPRGP ?? '').toString().trim(),
+         MMITGR: (this.formMITMAS.value.MMITGR ?? '').toString().trim(),
+         MMDIGI: (this.formMITMAS.value.MMDIGI ?? '').toString().trim(),
+         MMCFI3: (this.formMITMAS.value.MMCFI3 ?? '').toString().trim(),
+         MMDWNO: (this.formMITMAS.value.MMDWNO ?? '').toString().trim(),
+         M9CSNO: (this.formMITMAS.value.M9CSNO ?? '').toString().trim(),
+         M9ORCO: (this.formMITMAS.value.M9ORCO ?? '').toString().trim(),
+
+         MMVTCP: (this.formMITFAC.value.MMVTCP ?? '').toString().trim(),
+         M9ACRF: (this.formMITFAC.value.M9ACRF ?? '').toString().trim(),
+         MMITTY: (this.formMITFAC.value.MMITTY ?? '').toString().trim(),
+
+
+         CIECRG: (this.formMITMAS.value.CIECRG ?? '').toString().trim(),
+         CIECOP: (this.formMITMAS.value.CIECOP ?? '').toString().trim(),
+
+         MBRESP: (this.formMITBAL.value.MBRESP ?? '').toString().trim(),
+         MBBUYE: (this.formMITBAL.value.MBBUYE ?? '').toString().trim(),
+         MBSUNO: (this.formMITBAL.value.MBSUNO ?? '').toString().trim(),
+         MMGRTS: (this.formMITBAL.value.MMGRTS ?? '').toString().trim(),
+         M9WCLN: (this.formMITBAL.value.M9WCLN ?? '').toString().trim(),
+         MBWHSL: (this.formMITBAL.value.MBWHSL ?? '').toString().trim(),
+
+
+         POP1: (this.formMITPOP.value.POP1 ?? '').toString().trim(),
+         POP2: (this.formMITPOP.value.POP2 ?? '').toString().trim(),
+
+      };
+
+      const validations = [
+         { key: 'MMPRGP', list: this.respPRGP, field: 'PRGP', label: this.lang.get('MITMAS_FIELD_LABELS')['MMPRGP'] },
+         { key: 'MMITGR', list: this.respITGR, field: 'ITGR', label: this.lang.get('MITMAS_FIELD_LABELS')['MMITGR'] },
+         { key: 'MMDWNO', list: this.respDWNO, field: 'DWNO', label: this.lang.get('MITMAS_FIELD_LABELS')['MMDWNO'] },
+         { key: 'M9CSNO', list: this.respCSNO, field: 'CSNO', label: this.lang.get('MITFAC_FIELD_LABELS')['M9CSNO'] },
+         { key: 'M9ORCO', list: this.respORCO, field: 'CSCD', label: this.lang.get('MITFAC_FIELD_LABELS')['M9ORCO'] },
+         { key: 'CIECRG', list: this.respECRG, field: 'ECRG', label: this.lang.get('CECOCI_FIELD_LABELS')['CIECRG'] },
+         { key: 'CIECOP', list: this.respENS015, field: 'ECOP', label: this.lang.get('CECOCI_FIELD_LABELS')['CIECOP'] },
+         { key: 'MMCFI3', list: this.respCFI3, field: 'CFI3', label: this.lang.get('MITMAS_FIELD_LABELS')['MMCFI3'] },
+         { key: 'MMDIGI', list: this.respDIGI, field: 'DIGI', label: this.lang.get('MITMAS_FIELD_LABELS')['MMDIGI'] },
+         { key: 'MBRESP', list: this.respUSID, field: 'USID', label: this.lang.get('MITBAL_FIELD_LABELS')['MBRESP'] },
+         { key: 'MBBUYE', list: this.respUSID, field: 'USID', label: this.lang.get('MITBAL_FIELD_LABELS')['MBBUYE'] },
+         { key: 'MBSUNO', list: this.respSUNO, field: 'SUNO', label: this.lang.get('MITBAL_FIELD_LABELS')['MBSUNO'] },
+         { key: 'MMGRTS', list: this.respGRTS, field: 'GRTS', label: this.lang.get('MITBAL_FIELD_LABELS')['MBGTRS'] },
+         { key: 'M9WCLN', list: this.respWCLN, field: 'WCLN', label: this.lang.get('MITFAC_FIELD_LABELS')['M9WCLN'] },
+         { key: 'MBWHSL', list: this.respWHSL, field: 'WHSL', label: this.lang.get('MITBAL_FIELD_LABELS')['MBWHSL'] },
+         { key: 'M9ACRF', list: this.respACRF, field: 'ACRF', label: this.lang.get('MITFAC_FIELD_LABELS')['M9ACRF'] },
+         { key: 'MMITTY', list: this.respITTY, field: 'ITTY', label: this.lang.get('MITMAS_FIELD_LABELS')['MMITTY'] },
+         { key: 'MMVTCP', list: this.respVTCP, field: 'VTCD', label: this.lang.get('MITMAS_FIELD_LABELS')['MMVTCP'] },
+      ];
+
+      if (!values.MMITNO) {
+         this.shared.displayErrorMessage(`${this.lang.get('ERROR_TYPE')['ERROR']}`, `${this.lang.get('MITMAS_FIELD_LABELS')['MMITNO']} ${this.lang.get('MANDATORY_FIELD')['MANDATORY_FIELD']}`);
+         document.getElementById('MMITNO')?.focus();
+         return { valid: false, itemBasic: {} };
+      }
+      const respCheckItem = await this.shared.call_MMS200_GetItem(values.MMITNO);
+      if (respCheckItem.length > 0 && !respCheckItem[0].error) {
+         this.shared.displayErrorMessage(`${this.lang.get('ERROR_TYPE')['ERROR']}`, `${values.MMITNO} ${this.lang.get('ERROR_TYPE')['ALREADY_EXIST']}`);
+         document.getElementById('MMITNO')?.focus();
+         return { valid: false, itemBasic: {} };
+      }
+      for (const { key, list, field, label } of validations) {
+         let value = values[key];
+         if (key == "MMVTCP") {
+            value = value.padStart(2, "0");
+         }
+         if (value) {
+            const isValid = list.some(item => item?.[field] === value);
+            if (!isValid) {
+               this.shared.displayErrorMessage(`${this.lang.get('ERROR_TYPE')['ERROR']}`, `${label} ${value} ${this.lang.get('ERROR_TYPE')['NOT_VALID']}`);
+               document.getElementById(key)?.focus();
+               return { valid: false, itemBasic: {} };
+            }
+         }
+      }
    }
 }

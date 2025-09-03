@@ -117,12 +117,12 @@
                            <option value="13">13</option>
                            <option value="14">14</option>
                            <option value="15">15</option>
-                           <option value="20">20</option>
+                           <!-- <option value="20">20</option>
                            <option value="30">30</option>
                            <option value="40">40</option>
                            <option value="50">50</option>
                            <option value="80">80</option>
-                           <option value="90">90</option>
+                           <option value="90">90</option> -->
                            <option value="99">99</option>
                         </select>
                      </td>
@@ -211,36 +211,36 @@
             <form [formGroup]="formMITBAL" (ngSubmit)="onsubmit()" class="form-layout-compact" id="formMITBAL">
                <table class="form-table">
                   <tr>
-                     <td><label for="MBRESP">Agent planning</label></td>
+                     <td><label for="MBRESP">{{ lang.get('MITBAL_FIELD_LABELS').MBRESP }}</label></td>
                      <td><input type="text" id="MBRESP" name="MBRESP" formControlName="MBRESP" class="lookup"
                            maxlength="10" /></td>
                   </tr>
                   <tr>
-                     <td><label for="MBBUYE">Acheteur (S/T)</label></td>
+                     <td><label for="MBBUYE">{{ lang.get('MITBAL_FIELD_LABELS').MBBUYE }}</label></td>
                      <td><input type="text" id="MBBUYE" name="MBBUYE" formControlName="MBBUYE" class="lookup"
                            maxlength="10" /></td>
                   </tr>
                   <tr>
-                     <td><label for="MBSUNO">Fournisseur (S/T)</label></td>
+                     <td><label for="MBSUNO">{{ lang.get('MITBAL_FIELD_LABELS').MBSUNO }}</label></td>
                      <td><input type="text" id="MBSUNO" name="MBSUNO" formControlName="MBSUNO" class="lookup"
                            maxlength="10" /></td>
                   </tr>
                   <tr>
-                     <td><label for="MMGRTS">Classe grp techno</label></td>
+                     <td><label for="MMGRTS">{{ lang.get('MITBAL_FIELD_LABELS').MBGTRS }}</label></td>
                      <td><input type="text" id="MMGRTS" name="MMGRTS" formControlName="MMGRTS" class="lookup"
                            maxlength="5" /></td>
                   </tr>
-                  <tr *ngIf="!hideFieldMITBAL">
-                     <td><label for="M9WCLN">Ligne Prod</label></td>
+                  <tr [hidden]="hideFieldMITBAL">
+                     <td><label for="M9WCLN">{{ lang.get('MITFAC_FIELD_LABELS').M9WCLN }}</label></td>
                      <td><input type="text" id="M9WCLN" name="M9WCLN" formControlName="M9WCLN" class="lookup"
                            maxlength="8" /></td>
                   </tr>
                   <tr>
-                     <td><label for="MBWHSL">Emplacement</label></td>
+                     <td><label for="MBWHSL">{{ lang.get('MITBAL_FIELD_LABELS').MBWHSL }}</label></td>
                      <td><input type="text" id="MBWHSL" name="MBWHSL" formControlName="MBWHSL" class="lookup"
                            maxlength="10" /></td>
                   </tr>
-                  <tr *ngIf="!hideFieldMITBAL">
+                  <tr [hidden]="hideFieldMITBAL">
                      <td><label for="">Création Ligne structure</label></td>
                      <td> <input type="checkbox" class="checkbox" id="CREATELINE" name="CREATELINE"
                            formControlName="CREATELINE" /><label style="margin-left: 75px; margin-top: 5px;"

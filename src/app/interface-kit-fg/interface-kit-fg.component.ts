@@ -81,23 +81,23 @@ export class InterfaceKITFGComponent implements OnInit {
       DELGAM: new FormControl('')
    });
 
-   //Progess Bar
 
-   //For FG
+   //Progess Bar FG
    validateStepFG: boolean = false;
    copyItemBasicStepFG: boolean = false;
    updateItemBasicStepFG: boolean = false;
-   addToCugex1StepFG: boolean = false;
    languageFG: boolean = false;
-   iconCUGEX1FG: string = "";
    iconUpdatePriceFG: string = "";
    copyItemBasicFG: string = "";
    validateFieldsFG: string = "";
    iconLanguageFG: string = "";
    hideFieldMITFAC: boolean = false;
    hideFieldMITLAD: boolean = false;
-   hideFieldMITPOP: boolean = false;
-   //For KIT
+   hideFieldCUGEX: boolean = false;
+   iconAliasFG: string = "";
+   aliasFG = false;
+
+   //Progess Bar KIT
    validateFieldsKIT = false;
    copyItemBasicKIT = false;
    copyItemFacilityKIT = false;
@@ -124,37 +124,51 @@ export class InterfaceKITFGComponent implements OnInit {
       this.initializeLookups();
       this.pageTitle = window.history.state.Title;
       if (this.pageTitle != "KIT") {
+         this.setupCustomTabNavigation();//tabulation
+
+         //Hide field CUGEX and MITFAC if FG
          this.hideFieldMITFAC = true;
-         this.hideFieldMITPOP = true;
+         this.hideFieldCUGEX = true;
+
          this.referenceModel = this.lang.get('REFERENCE_MODEL')['FG'];
-
-         // Disable specific fields in formMITMAS
-         const mitFieldsToDisable = ['M9CSNO', 'M9ORCO'];
-         mitFieldsToDisable.forEach(field => {
-            this.formMITMAS.get(field)?.disable();
-         });
-
-         // Disable specific fields in formMITPOP
-         const popFieldsToDisable = ['POP1', 'POP2'];
-         popFieldsToDisable.forEach(field => {
-            this.formMITPOP.get(field)?.disable();
-         });
       } else {
          this.referenceModel = this.lang.get('REFERENCE_MODEL')['KIT'];
+         this.setupCustomTabNavigation();//tabulation
       }
 
-      const [respItemBasic, respCugex, respFACI] = await Promise.all([
+      const [respItemBasic, respCugex, respMM200DIGI_ACRF, respFACI, respMMS030List] = await Promise.all([
          this.shared.call_MMS200_GetItem(window.history.state.ITNOREF),
          this.shared.call_CUSEXT_GetFieldValue("MITMAS", window.history.state.ITNOREF),
-         this.shared.call_MMS200_GetItmFac(window.history.state.FACI, window.history.state.ITNOREF)
+         this.shared.call_MMS200_GetItmDIGI_ACRF_(`MMDIGI, MMACRF from MITMAS where MMITNO = ${window.history.state.ITNOREF}`),
+         this.shared.call_MMS200_GetItmFac(window.history.state.FACI, window.history.state.ITNOREF),
+         this.shared.call_MMS030_List(window.history.state.ITNOREF)
       ]);
 
+      //Retrieve Language for Item description
+      if (respMMS030List.length > 0 && !respMMS030List[0].error) {
+         const supportedLangs = ["GB", "DE", "PL", "NL", "PT", "ES", "FR"];
+         for (const item of respMMS030List) {
+            const lang = item?.LNCD;
+            const refTtem = item?.ITNO?.trim();
+            if (supportedLangs.includes(lang) && refTtem == window.history.state.ITNOREF?.trim()) {
+               this.formMITLAD.patchValue({
+                  [`LMCD_${lang}_ITDS`]: item?.ITDS || "",
+                  [`LMCD_${lang}_FUDS`]: item?.FUDS || "",
+               });
+            }
+         }
+
+      }
+
       const itemBasic = (respItemBasic.length > 0 && !respItemBasic[0].error) ? respItemBasic[0] : {};
+      const itemBasicDIGI_ACRF = (respMM200DIGI_ACRF.length > 0) ? respMM200DIGI_ACRF[0] : {};
       this.respItemBasicSelectedItem = itemBasic;
 
       const itemCugex = (respCugex.length > 0 && !respCugex[0].error) ? respCugex[0] : {};
       const itemFACI = (respFACI.length > 0 && !respFACI[0].error) ? respFACI[0] : {}
       this.respItemFaci = itemFACI;
+
+      // Patching for value
       this.setMitmasValue_N_Mitfac_N_cugex(
          window.history.state.ITNOREF || "",
          itemBasic.ITDS || "",
@@ -163,60 +177,22 @@ export class InterfaceKITFGComponent implements OnInit {
          itemBasic.ITGR || "",
          itemBasic.GRWE || "",
          itemBasic.CFI3 || "",
-         itemBasic.DIGI || "",
+         itemBasicDIGI_ACRF?.REPL?.split(";")[0] || "",
          itemBasic.ITTY || "",
-         (itemBasic.VTCP ?? 0).toString().padStart(2, '0') || "00",
+         (itemBasic.VTCP ?? 0).toString().padStart(2, "0"),
          itemCugex.N096 || "",
-         itemCugex.N196 || "",
-         this.pageTitle === "KIT" && itemFACI.ORCO ? itemFACI.ORCO : "",
-         this.pageTitle === "KIT" && itemFACI.CSNO ? itemFACI.CSNO : "",
-         (this.pageTitle === "KIT" ? itemFACI.ACRF : itemBasic.ACRF) || ""
-      )
+         itemCugex.N296 || "",
+         this.pageTitle === "KIT" ? (itemFACI.ORCO || "") : "",
+         this.pageTitle === "KIT" ? (itemFACI.CSNO || "") : "",
+         this.pageTitle === "KIT"
+            ? (itemFACI.ACRF || "")
+            : (itemBasicDIGI_ACRF?.REPL?.split(";")[1] || "")
+      );
+
 
       this.updateLookupDataset();
       this.disabledFieldsMMS030();
       document.getElementById('MMITNO')?.focus();
-   }
-
-   async onsubmitformMITMAS() {
-      if (this.pageTitle != "KIT") {
-         console.log(this.formMITMAS.value);
-      }
-      else {
-         console.log(this.formMITMAS.value);
-      }
-   }
-
-   async onsubmitFormMITLAD() {
-      if (this.pageTitle != "KIT") {
-         console.log(this.formMITLAD.value);
-      } else {
-         console.log(this.formMITLAD.value);
-      }
-   }
-   async onsubmitFormMITPOP() {
-      if (this.pageTitle != "KIT") {
-         console.log(this.formMITPOP.value);
-      }
-      else {
-         console.log(this.formMITPOP.value);
-      }
-   }
-   async onsubmitFormMITFAC() {
-      if (this.pageTitle != "KIT") {
-         console.log(this.formMITFAC.value);
-      }
-      else {
-         console.log(this.formMITFAC.value);
-      }
-   }
-   async onsubmitFormCUGEX() {
-      if (this.pageTitle != "KIT") {
-         console.log(this.formCUGEX.value);
-      }
-      else {
-         console.log(this.formCUGEX.value);
-      }
    }
 
 
@@ -295,14 +271,13 @@ export class InterfaceKITFGComponent implements OnInit {
 
       $('#MMSTAT').on('change.test', (e) => {
          const newVal = $(e.target).find(':checked').val();
-         console.log(newVal);
          this.formMITMAS.patchValue({
             MMSTAT: newVal.toString()
          });
       });
 
    }
-   setMitmasValue_N_Mitfac_N_cugex(itno: string, itds: string, fuds: string, prgp: string, itgr: string, grwe: string, cfi3: string, digi: string, itty: string, vtcp: string, n096: string, n196: string, m9orco: string, m9csno: string, m9acrf: string) {
+   setMitmasValue_N_Mitfac_N_cugex(itno: string, itds: string, fuds: string, prgp: string, itgr: string, grwe: string, cfi3: string, digi: string, itty: string, vtcp: string, n096: string, n296: string, m9orco: string, m9csno: string, m9acrf: string) {
       this.formMITMAS.patchValue({
          MMITNO: itno,
          MMITDS: itds,
@@ -323,7 +298,7 @@ export class InterfaceKITFGComponent implements OnInit {
       });
       this.formCUGEX.patchValue({
          DELPIC: n096,
-         DELGAM: n196
+         DELGAM: n296
       });
    }
 
@@ -359,16 +334,8 @@ export class InterfaceKITFGComponent implements OnInit {
                columns,
                dataset: [],
                selectable: 'single',
+               filterable: true,
                rowNavigation: true,
-               toolbar: {
-                  results: true,
-                  keywordFilter: true,
-                  advancedFilter: false,
-                  actions: false,
-                  rowHeight: false,
-                  collapsibleFilter: false,
-                  fullWidth: true
-               },
                paging: false,
                pagesize: 50
             }
@@ -404,6 +371,7 @@ export class InterfaceKITFGComponent implements OnInit {
                   formGroup.patchValue({ [field.inputId]: args[0].data[field.colId] });
                }
             }
+            this.setLabelforSelectedValue();
          });
 
          const input = document.getElementById(field.inputId);
@@ -451,7 +419,7 @@ export class InterfaceKITFGComponent implements OnInit {
       this.lookupVTCP?.updateDataset(this.respVTCP.length > 0 && this.respVTCP[0].error ? [] : this.respVTCP);
       this.lookupDIGI?.updateDataset(this.respDIGI.length > 0 && this.respDIGI[0].error ? [] : this.respDIGI);
       this.lookupCFI3?.updateDataset(this.respCFI3.length > 0 && this.respCFI3[0].error ? [] : this.respCFI3);
-
+      this.setLabelforSelectedValue();
       this.isBusyForm = false;
 
    }
@@ -460,11 +428,6 @@ export class InterfaceKITFGComponent implements OnInit {
    async onsubmit() {
       this.resetProgressBar();
       if (this.pageTitle !== "KIT") {
-         await Promise.all([
-            this.onsubmitformMITMAS(),
-            this.onsubmitFormCUGEX(),
-            this.onsubmitFormMITFAC(),
-         ]);
          this.isBusyForm = true;
          const itemBasic = await this.validateFields();
          this.validateStepFG = true;//Progess Bar FG
@@ -504,13 +467,15 @@ export class InterfaceKITFGComponent implements OnInit {
             LMCD_ES_FUDS: (this.formMITLAD.value.LMCD_ES_FUDS ?? '').toString().trim(),
             LMCD_FR_ITDS: (this.formMITLAD.value.LMCD_FR_ITDS ?? '').toString().trim(),
             LMCD_FR_FUDS: (this.formMITLAD.value.LMCD_FR_FUDS ?? '').toString().trim(),
+            POP1: (this.formMITPOP.value.POP1 ?? '').toString().trim(),
+            POP2: (this.formMITPOP.value.POP2 ?? '').toString().trim(),
          };
          const item = this.respItemBasicSelectedItem as any;
          const refItem = "T100200000";
          const cpyItem = window.history.state.ITNOREF || "";
          const newItem = values?.MMITNO;
 
-         // build base input object with fallbacks
+         // build base input object with fallbacks(FG)
          const input = {
             refItem: refItem,
             cpyItem: cpyItem,
@@ -518,7 +483,7 @@ export class InterfaceKITFGComponent implements OnInit {
             stat: values?.MMSTAT || "99",
             itds: values?.MMITDS || "",
             fuds: values?.MMFUDS || "",
-            resp: this.shared.userContext.USID || "",
+            resp: item?.RESP,
             dccd: item?.DCCD || "0",
             unms: item?.UNMS || "",
             itty: values?.MMITTY || item?.ITTY || "",
@@ -538,8 +503,8 @@ export class InterfaceKITFGComponent implements OnInit {
             itgr: item?.HIE3 || "",
             newe: values?.MMGRWE || item?.GRWE || "",
             ppun: item?.UNMS || "",
-            hie1: item?.HIE3 || "",
-            hie2: item?.HIE3 || "",
+            hie1: item?.HIE3 ? item.HIE3.charAt(0) : "", // first char
+            hie2: item?.HIE3 ? item.HIE3.substring(0, 4) : "", // first 4 chars
             hie3: item?.HIE3 || "",
             aluc: "",//item?.UNMS || "",
             tpli: cpyItem,
@@ -551,24 +516,12 @@ export class InterfaceKITFGComponent implements OnInit {
             chid: this.shared.userContext.USID,
             cpun: item?.UNMS || "",
             delpic: values?.DELPIC !== "" ? values?.DELPIC : "0",
-            delgam: values?.DELGAM !== "" ? values?.DELGAM : "0",
-            delchef: "0",
+            delgam: "0",
+            delchef: values?.DELGAM !== "" ? values?.DELGAM : "0",
             indi: "0",
             bacd: "0",
             tpcd: "0"
          };
-
-         // business rules for INDI + BACD
-         if (["G00", "H00", "I00"].includes(input.itty)) {
-            input.indi = "3";
-            input.bacd = "2";
-         } else if (input.itty === "A00" && input.acrf === "ITA01") {
-            input.indi = "3";
-            input.bacd = "0";
-         } else if (["A00", "B00", "D00", "E00", "F00"].includes(input.itty) && input.acrf !== "ITA01") {
-            input.indi = "0";
-            input.bacd = "0";
-         }
 
          // fetch TPCD
          const respTPCD = await this.shared.call_CRS040_GetTPCDFromITTY(input.itty);
@@ -580,29 +533,19 @@ export class InterfaceKITFGComponent implements OnInit {
          const respCPY = await this.shared.call_MMS200_CpyItmBasic(input);
          this.copyItemBasicStepFG = true;//Progess Bar FG
          if (respCPY.length > 0 && !respCPY[0].error) {
+            this.shared.call_MMS200_UpdItmBasic(values.MMITNO, input.acrf); //update ACRF using this API since does not exist on prem
             this.copyItemBasicFG = "#icon-success";//Progess Bar FG
             this.shared.displaySuccessMessage(`${this.lang.get('ERROR_TYPE')['SUCCESS']}`, `${input.newItem} ${this.lang.get('ERROR_TYPE')['CREATED_WITH_SUCCESS']}`);
             const [respUpdPrice, respAddCUGEX, respUpdCUGEX] = await Promise.all([
                this.shared.call_MMS200_UpdItmPrice(values.MMITNO, values.MMDIGI),
-               this.shared.call_CUSEXT_AddFieldValue("MITMAS", input.newItem, input.delpic, input.delgam, input.delchef),
-               this.shared.call_CUSEXT_ChgieldValue("MITMAS", input.newItem, input.delpic, input.delgam, input.delchef)
+               this.shared.call_CUSEXT_AddFieldValue("MITMAS", input.newItem, input.delpic, input.delgam, input.delchef, ""),
+               this.shared.call_CUSEXT_ChgieldValue("MITMAS", input.newItem, input.delpic, input.delgam, input.delchef, "")
             ]);
+            this.iconUpdatePriceFG = "#icon-success";//Progess Bar FG
             this.updateItemBasicStepFG = true;//Progess Bar FG
-            this.addToCugex1StepFG = true;//Progess Bar FG
-            let errorMessages: string[] = [];
 
-            if (respUpdPrice?.[0]?.error) {
-               this.iconUpdatePriceFG = "#icon-rejected-solid";//Progess Bar FG
-               errorMessages.push(`PRIX: ${respUpdPrice[0].errorMessage.errorMessage}`);
-            } else {
-               this.iconUpdatePriceFG = "#icon-success";//Progess Bar FG
-            }
-            this.iconCUGEX1FG = "#icon-success";//Progess Bar FG
-            if (errorMessages.length > 0) {
-               this.shared.displayToast(`${this.lang.get('ERROR_TYPE')['ERROR']}`, errorMessages.join('\n'));
-               this.isBusyForm = false;
-               return;
-            }
+
+
             this.languageFG = true;//Progess Bar FG
             const countries = ['GB', 'DE', 'PL', 'NL', 'PT', 'ES', 'FR'];
 
@@ -616,6 +559,39 @@ export class InterfaceKITFGComponent implements OnInit {
 
             await Promise.all(promises);
             this.iconLanguageFG = "#icon-success";//Progess Bar FG
+
+            // Create Item Alias
+            this.aliasFG = true;//Progess Bar FG
+            this.iconAliasFG = "#icon-success";//Progess Bar FG
+
+            const aliases = [
+               { type: '1', value: values.POP1, qualifier: '' },
+               { type: '2', value: values.POP2, qualifier: 'EA13 ' }
+            ];
+
+            const popPromises = aliases
+               .filter(alias => alias.value !== '')
+               .map(alias => this.shared.call_MMS025_AddAlias(alias.type, values.MMITNO, alias.value, alias.qualifier));
+
+            const respAlias = await Promise.all(popPromises);
+
+            if (respAlias.some(result => result[0]?.error)) {
+               this.iconAliasFG = "#icon-rejected-solid";//Progess Bar FG
+            }
+            //Add CUGEX MITPOP
+            const popCUGEXPromisesAdd = aliases
+               .filter(alias => alias.value !== '')
+               .map(alias => this.shared.call_CUSEXT_AddFieldValue("MITPOP", values.MMITNO, alias.type, alias.qualifier, alias.value, this.shared.userContext.currentDivision));
+
+            await Promise.all(popCUGEXPromisesAdd);
+
+            const popCUGEXPromisesChg = aliases
+               .filter(alias => alias.value !== '')
+               .map(alias => this.shared.call_CUSEXT_ChgieldValue("MITPOP", values.MMITNO, alias.type, alias.qualifier, alias.value, this.shared.userContext.currentDivision));
+
+            await Promise.all(popCUGEXPromisesChg);
+            //End Add CUGEX MITPOP
+
          }
          else {
             this.copyItemBasicFG = "#icon-rejected-solid";//Progess Bar FG
@@ -626,13 +602,6 @@ export class InterfaceKITFGComponent implements OnInit {
          this.isBusyForm = false;
       }
       else {
-         await Promise.all([
-            this.onsubmitformMITMAS(),
-            this.onsubmitFormCUGEX(),
-            this.onsubmitFormMITFAC(),
-            this.onsubmitFormMITLAD(),
-            this.onsubmitFormMITPOP()
-         ]);
          this.isBusyForm = true;
          const itemBasic = await this.validateFields();
          this.validateFieldsKIT = true; //Progess Bar KIT
@@ -690,7 +659,7 @@ export class InterfaceKITFGComponent implements OnInit {
          const newItem = values?.MMITNO;
          const cpyfaci = window.history.state.FACI || "";
 
-         // build base input object with fallbacks
+         // build base input object with fallbacks (KIT)
          const input = {
             refItem: refItem,
             cpyItem: cpyItem,
@@ -698,7 +667,7 @@ export class InterfaceKITFGComponent implements OnInit {
             stat: values?.MMSTAT || "99",
             itds: values?.MMITDS || "",
             fuds: values?.MMFUDS || "",
-            resp: this.shared.userContext.USID || "",
+            resp: item?.RESP,
             dccd: item?.DCCD || "0",
             unms: item?.UNMS || "",
             itty: values?.MMITTY || item?.ITTY || "",
@@ -718,8 +687,8 @@ export class InterfaceKITFGComponent implements OnInit {
             itgr: item?.HIE3 || "",
             newe: values?.MMGRWE || item?.GRWE || "",
             ppun: item?.UNMS || "",
-            hie1: item?.HIE3 || "",
-            hie2: item?.HIE3 || "",
+            hie1: item?.HIE3 ? item.HIE3.charAt(0) : "", // first char
+            hie2: item?.HIE3 ? item.HIE3.substring(0, 4) : "", // first 4 chars
             hie3: item?.HIE3 || "",
             aluc: "",//item?.UNMS || "",
             tpli: cpyItem,
@@ -731,8 +700,8 @@ export class InterfaceKITFGComponent implements OnInit {
             chid: this.shared.userContext.USID,
             cpun: item?.UNMS || "",
             delpic: values?.DELPIC !== "" ? values?.DELPIC : "0",
-            delgam: values?.DELGAM !== "" ? values?.DELGAM : "0",
-            delchef: "0",
+            delgam: "0",
+            delchef: values?.DELGAM !== "" ? values?.DELGAM : "0",
             indi: "0",
             bacd: "0",
             tpcd: "0"
@@ -746,21 +715,9 @@ export class InterfaceKITFGComponent implements OnInit {
             csno: values?.M9CSNO || itemFaci?.CSNO || "",
             orco: values?.M9ORCO || itemFaci?.ORCO || "",
             wcln: itemFaci?.WCLN || "",
-            vamt: itemFaci?.VAMT || "",
             acrf: values?.M9ACRF || itemFaci?.ACRF || "",
          }
 
-         // business rules for INDI + BACD
-         if (["G00", "H00", "I00"].includes(input.itty)) {
-            input.indi = "3";
-            input.bacd = "2";
-         } else if (input.itty === "A00" && input.acrf === "ITA01") {
-            input.indi = "3";
-            input.bacd = "0";
-         } else if (["A00", "B00", "D00", "E00", "F00"].includes(input.itty) && input.acrf !== "ITA01") {
-            input.indi = "0";
-            input.bacd = "0";
-         }
 
          // fetch TPCD
          const respTPCD = await this.shared.call_CRS040_GetTPCDFromITTY(input.itty);
@@ -770,6 +727,7 @@ export class InterfaceKITFGComponent implements OnInit {
 
          const respCPY = await this.shared.call_MMS200_CpyItmBasic(input)
          if (respCPY.length > 0 && !respCPY[0].error) {
+            this.shared.call_MMS200_UpdItmBasic(values.MMITNO, input.acrf); //update ACRF using this API since does not exist on prem
             this.iconCopyItemBasicKIT = "#icon-success"; //Progess Bar KIT
             this.shared.displaySuccessMessage(`${this.lang.get('ERROR_TYPE')['SUCCESS']}`, `${values.MMITNO} ${this.lang.get('ERROR_TYPE')['CREATED_WITH_SUCCESS']}`);
             this.copyItemFacilityKIT = true;  //Progess Bar KIT
@@ -778,8 +736,8 @@ export class InterfaceKITFGComponent implements OnInit {
             const [respCPYFACI, respUpdPrice, respAddCUGEX1, respUpdGUEX] = await Promise.all([
                this.shared.call_MMS200_CpyItmFac(inputFaci),
                this.shared.call_MMS200_UpdItmPrice(values.MMITNO, values.MMDIGI),
-               this.shared.call_CUSEXT_AddFieldValue("MITMAS", values.MMITNO, input.delpic, input.delgam, input.delchef),
-               this.shared.call_CUSEXT_ChgieldValue("MITMAS", values.MMITNO, input.delpic, input.delgam, input.delchef)
+               this.shared.call_CUSEXT_AddFieldValue("MITMAS", values.MMITNO, input.delpic, input.delgam, input.delchef, ""),
+               this.shared.call_CUSEXT_ChgieldValue("MITMAS", values.MMITNO, input.delpic, input.delgam, input.delchef, "")
             ]);
 
             if (respCPYFACI.length > 0 && !respCPYFACI[0].error) {
@@ -829,7 +787,19 @@ export class InterfaceKITFGComponent implements OnInit {
             if (respAlias.some(result => result[0]?.error)) {
                this.iconAliasKIT = "#icon-rejected-solid";//Progess Bar KIT
             }
+            //Add CUGEX MITPOP
+            const popCUGEXPromisesAdd = aliases
+               .filter(alias => alias.value !== '')
+               .map(alias => this.shared.call_CUSEXT_AddFieldValue("MITPOP", values.MMITNO, alias.type, alias.qualifier, alias.value, this.shared.userContext.currentDivision));
 
+            await Promise.all(popCUGEXPromisesAdd);
+
+            const popCUGEXPromisesChg = aliases
+               .filter(alias => alias.value !== '')
+               .map(alias => this.shared.call_CUSEXT_ChgieldValue("MITPOP", values.MMITNO, alias.type, alias.qualifier, alias.value, this.shared.userContext.currentDivision));
+
+            await Promise.all(popCUGEXPromisesChg);
+            //End Add CUGEX MITPOP
 
 
 
@@ -912,8 +882,8 @@ export class InterfaceKITFGComponent implements OnInit {
             }
          }
       }
-      if (this.pageTitle == "KIT") {
-         if (values?.POP2 && values.POP2.trim().length !== 13) {
+      if (values?.POP2?.trim() != "") {
+         if (values.POP2?.trim()?.length !== 13) {
             this.shared.displayErrorMessage(`${this.lang.get('ERROR_TYPE')['ERROR']}`, `${this.lang.get('ERROR_TYPE')['NO_CHARS_EAN13']}`);
             document.getElementById('POP2')?.focus();
             return { valid: false, itemBasic: {} };
@@ -954,8 +924,6 @@ export class InterfaceKITFGComponent implements OnInit {
       this.validateStepFG = false;
       this.copyItemBasicStepFG = false;
       this.updateItemBasicStepFG = false;
-      this.addToCugex1StepFG = false;
-      this.iconCUGEX1FG = "";
       this.iconUpdatePriceFG = "";
       this.copyItemBasicFG = "";
       this.validateFieldsFG = "";
@@ -1005,6 +973,106 @@ export class InterfaceKITFGComponent implements OnInit {
                targetControl.disable();
             }
          }
+      });
+   }
+
+   setupCustomTabNavigation() {
+      if (this.pageTitle === "KIT") {
+         const navigationMap: { [key: string]: string } = {
+            'MMPRGP': 'MMITGR',
+            'MMITGR': 'M9CSNO',
+            'M9CSNO': 'M9ORCO',
+            'M9ORCO': 'MMGRWE',
+            'MMGRWE': 'MMCFI3',
+            'MMCFI3': 'MMDIGI',
+            'M9ACRF': 'MMITTY',
+            'MMITTY': 'MMVTCP',
+            'MMVTCP': 'DELPIC',
+            'MMDIGI': 'LMCD_GB_ITDS',
+            'DELGAM': 'MMITNO'
+         };
+
+         document.addEventListener('keydown', (event: KeyboardEvent) => {
+            const active = document.activeElement as HTMLElement;
+            const activeId = active?.id;
+            if (!activeId) return;
+
+            if (event.key === 'Tab' || event.key.toUpperCase() === 'F4') {
+               if (navigationMap[activeId]) {
+                  event.preventDefault();
+                  document.getElementById(navigationMap[activeId])?.focus();
+               }
+            }
+         });
+      }
+      else {
+         const navigationMap: { [key: string]: string } = {
+            'MMPRGP': 'MMITGR',
+            'MMITGR': 'MMGRWE',
+            'MMGRWE': 'MMCFI3',
+            'MMCFI3': 'MMDIGI',
+            'MMDIGI': 'LMCD_GB_ITDS',
+            'M9ACRF': 'MMITTY',
+            'MMITTY': 'MMVTCP',
+            'MMVTCP': 'MMITNO',
+         };
+
+         document.addEventListener('keydown', (event: KeyboardEvent) => {
+            const active = document.activeElement as HTMLElement;
+            const activeId = active?.id;
+            if (!activeId) return;
+
+            if (event.key === 'Tab' || event.key.toUpperCase() === 'F4') {
+               if (navigationMap[activeId]) {
+                  event.preventDefault();
+                  document.getElementById(navigationMap[activeId])?.focus();
+               }
+            }
+         });
+      }
+   }
+
+
+   setLabelforSelectedValue() {
+      const fields = [
+         { key: 'ITGR', inputId: 'MMITGR', colId: 'ITGR', dataset: this.respITGR },
+         { key: 'PRGP', inputId: 'MMPRGP', colId: 'PRGP', dataset: this.respPRGP },
+         { key: 'CSNO', inputId: 'M9CSNO', colId: 'CSNO', dataset: this.respCSNO },
+         { key: 'M9ORCO', inputId: 'M9ORCO', colId: 'CSCD', dataset: this.respORCO },
+         { key: 'ITTY', inputId: 'MMITTY', colId: 'ITTY', dataset: this.respITTY },
+         { key: 'M9ACRF', inputId: 'M9ACRF', colId: 'ACRF', dataset: this.respACRF },
+         { key: 'VTCD', inputId: 'MMVTCP', colId: 'VTCD', dataset: this.respVTCP },
+         { key: 'DIGI', inputId: 'MMDIGI', colId: 'DIGI', dataset: this.respDIGI },
+         { key: 'CFI3', inputId: 'MMCFI3', colId: 'CFI3', dataset: this.respCFI3 }
+      ];
+
+      fields.forEach(field => {
+         const input = document.getElementById(field.inputId) as HTMLInputElement;
+         const span = document.getElementById(`${field.inputId}SelectedValue`);
+
+         if (!input || !span) {
+            console.warn(`Input or span not found for ${field.inputId}`);
+            return;
+         }
+
+         // Add listener for input changes
+         input.addEventListener('input', () => {
+            const inputValue = input.value;
+            const datasetArray = Array.isArray(field.dataset) ? field.dataset : [field.dataset];
+
+            const record = datasetArray.find(d => d?.[field.colId] === inputValue);
+
+            if (record) {
+               span.textContent = record.TX15 || "";
+               // console.log(`Reactive update: ${field.key} -> TX15="${span.textContent}"`);
+            } else {
+               span.textContent = "";
+               //console.log(`Reactive update: ${field.key} -> No match, span cleared`);
+            }
+         });
+
+         // Optional: trigger once on setup to initialize span
+         input.dispatchEvent(new Event('input'));
       });
    }
 

@@ -125,6 +125,38 @@ export class SharedService {
          return [{ error: true, errorMessage: error }];
       }
    }
+   async call_MMS200_UpdItmBasic(itno: string, acrf: string): Promise<any> {
+      try {
+         const inputRecord = new MIRecord();
+         inputRecord.setString('ITNO', itno?.trim());
+         inputRecord.setString('ACRF', acrf?.trim());
+
+         const request: IMIRequest = {
+            program: 'MMS200MI',
+            transaction: 'UpdItmBasic',
+            record: inputRecord,
+            maxReturnedRecords: 0,
+            outputFields: []
+
+         };
+
+         const response: IMIResponse = await this.miService.execute(request).toPromise();
+
+         if (!response.hasError()) {
+            if (response.items.length > 0) {
+               const items = response.items;
+               return items;
+            } else {
+               return response.items;
+            }
+         } else {
+            return [{ error: true, errorMessage: response.errorMessage }];
+         }
+      } catch (error) {
+         console.error("Error:", error);
+         return [{ error: true, errorMessage: error }];
+      }
+   }
    async call_MMS200_GetItmFac(faci: string, itno: string): Promise<any> {
       try {
          const inputRecord = new MIRecord();
@@ -136,7 +168,7 @@ export class SharedService {
             transaction: 'GetItmFac',
             record: inputRecord,
             maxReturnedRecords: 0,
-            outputFields: ['ORCO', 'CSNO', 'ACRF']
+            outputFields: ['ORCO', 'CSNO', 'ACRF', 'VAMT']
 
          };
 
@@ -233,7 +265,7 @@ export class SharedService {
             transaction: 'GetFieldValue',
             record: inputRecord,
             maxReturnedRecords: 0,
-            outputFields: ['N096', 'N196']
+            outputFields: ['N096', 'N296']
 
          };
 
@@ -265,6 +297,36 @@ export class SharedService {
             record: inputRecord,
             maxReturnedRecords: 0,
             outputFields: ['ITGR', 'TX15', 'TX40']
+
+         };
+
+         const response: IMIResponse = await this.miService.execute(request).toPromise();
+
+         if (!response.hasError()) {
+            if (response.items.length > 0) {
+               const items = response.items;
+               return items;
+            } else {
+               return response.items;
+            }
+         } else {
+            return [{ error: true, errorMessage: response.errorMessage }];
+         }
+      } catch (error) {
+         console.error("Error:", error);
+         return [{ error: true, errorMessage: error }];
+      }
+   }
+   async call_MMS030_List(itno: string) {
+      try {
+         const inputRecord = new MIRecord();
+         inputRecord.setString('ITNO', itno);
+         const request: IMIRequest = {
+            program: 'MMS030MI',
+            transaction: 'List',
+            record: inputRecord,
+            maxReturnedRecords: 0,
+            outputFields: []
 
          };
 
@@ -502,11 +564,12 @@ export class SharedService {
                      TX40: CTTX40 || ''
                   };
                });
-               ;
             } else {
                return response.items;
             }
-         } else {
+         }
+
+         else {
             return [{ error: true, errorMessage: response.errorMessage }];
          }
       } catch (error) {
@@ -535,20 +598,25 @@ export class SharedService {
          if (!response.hasError()) {
             if (response.items.length > 0) {
                const items = response.items;
-               return items.map(item => {
-                  const [CTSTKY, CTTX15, CTTX40] = (item.REPL || '').split(';');
-                  return {
-                     ...item,
-                     ACRF: CTSTKY || '',
-                     TX15: CTTX15 || '',
-                     TX40: CTTX40 || ''
-                  };
-               });
-               ;
-            } else {
+               return items
+                  .map(item => {
+                     const [CTSTKY, CTTX15, CTTX40] = (item.REPL || '').split(';');
+                     return {
+                        ...item,
+                        ACRF: CTSTKY || '',
+                        TX15: CTTX15 || '',
+                        TX40: CTTX40 || ''
+                     };
+                  })
+                  .filter(mappedItem =>
+                     mappedItem.ACRF.startsWith("IT") || mappedItem.ACRF.startsWith("YY")
+                  ); // ✅ keep only ACRF starting with "IT" or "YY"
+            }
+            else {
                return response.items;
             }
-         } else {
+         }
+         else {
             return [{ error: true, errorMessage: response.errorMessage }];
          }
       } catch (error) {
@@ -723,15 +791,25 @@ export class SharedService {
       }
    }
    async call_CUSEXT_AddFieldValue(
-      file, itno: string, delpic: string, delgam: string, delchef: string
+      file, itno: string, delpic: string, delgam: string, delchef: string, divi: string
    ): Promise<any> {
       try {
          const inputRecord = new MIRecord();
          inputRecord.setString('FILE', file?.trim());
          inputRecord.setString('PK01', itno?.trim());
-         inputRecord.setString('N096', delpic?.trim() || '');
-         inputRecord.setString('N196', delgam?.trim() || '');
-         inputRecord.setString('N296', delchef?.trim() || '');
+         if (file == "MITMAS") {
+            inputRecord.setString('PK01', itno?.trim());
+            inputRecord.setString('N096', delpic?.trim() || '');
+            inputRecord.setString('N196', delgam?.trim() || '');
+            inputRecord.setString('N296', delchef?.trim() || '');
+         } else {
+            inputRecord.setString('PK01', delpic?.trim());//it is alias type in case of MITPOP
+            inputRecord.setString('PK02', delgam?.trim());////it is alias qualifier in case of MITPOP
+            inputRecord.setString('PK03', itno?.trim() || '');//it is item number in case of MITPOP
+            inputRecord.setString('PK04', delchef?.trim() || '');//it is alias number in case of MITPOP
+            inputRecord.setString('A030', divi?.trim() || ''); //it is user divi in case of MITPO
+         }
+
 
          const request: IMIRequest = {
             program: 'CUSEXTMI',
@@ -754,15 +832,23 @@ export class SharedService {
       }
    }
    async call_CUSEXT_ChgieldValue(
-      file, itno: string, delpic: string, delgam: string, delchef: string
+      file, itno: string, delpic: string, delgam: string, delchef: string, divi: string
    ): Promise<any> {
       try {
          const inputRecord = new MIRecord();
          inputRecord.setString('FILE', file?.trim());
-         inputRecord.setString('PK01', itno?.trim());
-         inputRecord.setString('N096', delpic?.trim() || '');
-         inputRecord.setString('N196', delgam?.trim() || '');
-         inputRecord.setString('N296', delchef?.trim() || '');
+         if (file == "MITMAS") {
+            inputRecord.setString('PK01', itno?.trim());
+            inputRecord.setString('N096', delpic?.trim() || '');
+            inputRecord.setString('N196', delgam?.trim() || '');
+            inputRecord.setString('N296', delchef?.trim() || '');
+         } else {
+            inputRecord.setString('PK01', delpic?.trim());//it is alias type in case of MITPOP
+            inputRecord.setString('PK02', delgam?.trim());////it is alias qualifier in case of MITPOP
+            inputRecord.setString('PK03', itno?.trim() || '');//it is item number in case of MITPOP
+            inputRecord.setString('PK04', delchef?.trim() || '');//it is alias number in case of MITPOP
+            inputRecord.setString('A030', divi?.trim() || ''); //it is user divi in case of MITPO
+         }
 
          const request: IMIRequest = {
             program: 'CUSEXTMI',
@@ -1240,6 +1326,70 @@ export class SharedService {
    }
 
    async call_MMS025_CheckIfExistEA13(qery: string): Promise<any> {
+      try {
+         const inputRecord = new MIRecord();
+         inputRecord.setString('SEPC', ";");
+         inputRecord.setString('HDRS', "0");
+         inputRecord.setString('QERY', qery);
+
+         const request: IMIRequest = {
+            program: 'EXPORTMI',
+            transaction: 'Select',
+            record: inputRecord,
+            maxReturnedRecords: 0,
+            outputFields: ['REPL']
+         };
+
+         const response: IMIResponse = await this.miService.execute(request).toPromise();
+
+         if (!response.hasError()) {
+            if (response.items.length > 0) {
+               const items = response.items;
+               return items;
+            } else {
+               return response.items;
+            }
+         } else {
+            return [];
+         }
+      } catch (error) {
+         console.error("Error:", error);
+         return [];
+      }
+   }
+   async call_MMS200_GetItmDIGI_ACRF_(qery: string): Promise<any> {
+      try {
+         const inputRecord = new MIRecord();
+         inputRecord.setString('SEPC', ";");
+         inputRecord.setString('HDRS', "0");
+         inputRecord.setString('QERY', qery);
+
+         const request: IMIRequest = {
+            program: 'EXPORTMI',
+            transaction: 'Select',
+            record: inputRecord,
+            maxReturnedRecords: 0,
+            outputFields: ['REPL']
+         };
+
+         const response: IMIResponse = await this.miService.execute(request).toPromise();
+
+         if (!response.hasError()) {
+            if (response.items.length > 0) {
+               const items = response.items;
+               return items;
+            } else {
+               return response.items;
+            }
+         } else {
+            return [];
+         }
+      } catch (error) {
+         console.error("Error:", error);
+         return [];
+      }
+   }
+   async call_ListECO_Product(qery: string): Promise<any> {
       try {
          const inputRecord = new MIRecord();
          inputRecord.setString('SEPC', ";");

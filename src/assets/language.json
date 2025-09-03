@@ -24,7 +24,12 @@
       "MMDWNO": "Plan number"
     },
     "MITBAL_FIELD_LABELS": {
-      "MBWHLO": "Warehouse"
+      "MBWHLO": "Warehouse",
+      "MBRESP": "Agent planning",
+      "MBBUYE": "Buyer (S/T)",
+      "MBSUNO": "Supplier (S/T)",
+      "MBGTRS": "Tech Grp Dist",
+      "MBWHSL": "Location"
     },
     "MITPOP_FIELD_LABELS": {
       "POP1": "Alias",
@@ -34,11 +39,12 @@
       "M9CSNO": "Customs Tariff",
       "M9ORCO": "Country of Origin",
       "M9ACRF": "Acc Ctrl Obj",
-      "M9VAMT": "Inv Cal Meth"
+      "M9VAMT": "Inv Cal Meth",
+      "M9WCLN": "Production Line"
     },
     "CUGEX_FIELD_LABELS": {
-      "DELPIC": "PIC Lead Time",
-      "DELGAM": "Rout Lead Time  "
+      "DELPIC": "PIC Std Lead Time",
+      "DELGAM": "PIC Prod Lead Time"
     },
     "CECOCI_FIELD_LABELS": {
       "CIECRG": "Eco-Organism",
@@ -79,12 +85,12 @@
     },
     "PROGRESS_BAR": {
       "VALIDATION_FIELD": "Validate Fields",
-      "COPY_ITEM_BASIC": "Copy Item Basic",
-      "COPY_ITEM_FACILITY": "Copy Item Facility",
-      "UPDATE_ITEM_PRICE": "Update Item Price",
+      "COPY_ITEM_BASIC": "Copy/upd Item",
+      "COPY_ITEM_FACILITY": "Copy Facility",
+      "UPDATE_ITEM_PRICE": "Upd Price",
       "ADD_CUGEX": "Add CUGEX",
-      "LANGUAGE_MMS030": "Language - MMS030",
-      "ADD_ALIAS": "Add Alias"
+      "LANGUAGE_MMS030": "Languages",
+      "ADD_ALIAS": "Alias"
     },
     "ERROR_TYPE": {
       "SUCCESS": "Success",
@@ -116,14 +122,19 @@
       "MMGRWE": "Poids",
       "MMCFI3": "Matière",
       "MMDIGI": "Barème de remise",
-      "MMITGR": "Groupe d'article",
+      "MMITGR": "Sous-Famille",
       "MMWAPC": "% Pertes",
       "MMILEN": "Longueur ht (m)",
       "MMIWID": "Largeur ht (m)",
       "MMDWNO": "N° de plan"
     },
     "MITBAL_FIELD_LABELS": {
-      "MBWHLO": "Dépôt"
+      "MBWHLO": "Warehouse",
+      "MBRESP": "Agent planning",
+      "MBBUYE": "Acheteur (S/T)",
+      "MBSUNO": "Fournisseur (S/T)",
+      "MBGTRS": "Classe grp techno",
+      "MBWHSL": "Emplacement"
     },
     "MITPOP_FIELD_LABELS": {
       "POP1": "Alias",
@@ -133,11 +144,12 @@
       "M9CSNO": "Nomenclature douanière",
       "M9ORCO": "Pays d'origine",
       "M9ACRF": "Obj ctrl compta",
-      "M9VAMT": "Meth cpt stk"
+      "M9VAMT": "Meth cpt stk",
+      "M9WCLN": "Ligne Prod"
     },
     "CUGEX_FIELD_LABELS": {
-      "DELPIC": "Délai PIC",
-      "DELGAM": "Délai gamme"
+      "DELPIC": "Délai PIC Std",
+      "DELGAM": "Délai PIC Prod"
     },
     "CECOCI_FIELD_LABELS": {
       "CIECRG": "Eco-Organisme",
@@ -177,13 +189,13 @@
       "KIT": "(Réf Modèle : T100100000)"
     },
     "PROGRESS_BAR": {
-      "VALIDATION_FIELD": "Valider les champs",
-      "COPY_ITEM_BASIC": "Copier les informations de l'article",
-      "COPY_ITEM_FACILITY": "Copier les informations de l'établissement",
-      "UPDATE_ITEM_PRICE": "Mettre à jour le prix de l'article",
+      "VALIDATION_FIELD": "Valider champ",
+      "COPY_ITEM_BASIC": "Copier/maj info article",
+      "COPY_ITEM_FACILITY": "Copier info étab",
+      "UPDATE_ITEM_PRICE": "Maj prix article",
       "ADD_CUGEX": "Ajouter CUGEX",
-      "LANGUAGE_MMS030": "Langue - MMS030",
-      "ADD_ALIAS": "Ajouter un alias"
+      "LANGUAGE_MMS030": "Langues",
+      "ADD_ALIAS": "Alias"
     },
     "ERROR_TYPE": {
       "SUCCESS": "Succès",

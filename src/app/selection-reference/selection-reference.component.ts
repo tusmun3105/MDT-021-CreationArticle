@@ -27,7 +27,9 @@ export class SelectionReferenceComponent implements OnInit {
       // const whlo = "201";//val?.WHLO?.trim() || '';
       // let panel = "MMA003BC"; //val?.PANEL?.trim() || '';
       // const faci = "200";//val?.FACI?.trim() || '';
-      //const respITNO = await this.shared.call_MMS200_GetItem(itno);
+      // const respITNO = await this.shared.call_MMS200_GetItem(itno);
+
+
       console.log("url", url);
       const val = this.urlCheck(url);
       console.log("val", val);
@@ -120,10 +122,7 @@ export class SelectionReferenceComponent implements OnInit {
                });
                return;
             } else {
-               const title = this.lang.get('panelFGTitle');
-               this.router.navigate(['/component-KIT_FG'], {
-                  state: { WHLO: '', FACI: faci, ITNOREF: itno, Title: title }
-               });
+               this.shared.displayErrorMessage("Warning", "Please use MMS001 to create article of type Frais Généraux !");
                return;
             }
 

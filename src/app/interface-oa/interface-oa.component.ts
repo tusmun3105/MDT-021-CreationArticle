@@ -9,10 +9,7 @@ import { Router } from '@angular/router';
 export class InterfaceOAComponent implements OnInit {
 
    constructor(private router: Router) {
-      const nav = this.router.getCurrentNavigation();
-      const state = nav?.extras.state;
-      console.log(state)
-      console.log(state?.WHLO, state?.ITNOREF);
+
    }
 
    ngOnInit(): void {
