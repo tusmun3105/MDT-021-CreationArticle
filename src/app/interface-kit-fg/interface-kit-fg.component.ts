@@ -500,18 +500,18 @@ export class InterfaceKITFGComponent implements OnInit {
             atmo: item?.ATMO || "",
             atmn: item?.ATMN || "",
             digi: values?.MMDIGI || item?.DIGI || "",
-            itgr: item?.HIE3 || "",
+            itgr: values?.MMITGR || "",
             newe: values?.MMGRWE || item?.GRWE || "",
             ppun: item?.UNMS || "",
-            hie1: item?.HIE3 ? item.HIE3.charAt(0) : "", // first char
-            hie2: item?.HIE3 ? item.HIE3.substring(0, 4) : "", // first 4 chars
-            hie3: item?.HIE3 || "",
+            hie1: values?.MMITGR ? values?.MMITGR.charAt(0) : "", // first char
+            hie2: values?.MMITGR ? values?.MMITGR?.substring(0, 4) : "", // first 4 chars
+            hie3: values?.MMITGR || "",
             aluc: "",//item?.UNMS || "",
             tpli: cpyItem,
             stun: item?.UNMS || "",
             spun: item?.UNMS || "",
             alun: item?.UNMS || "",
-            vtcp: values?.MMITTY === "J00" ? "" : "",
+            vtcp: values?.MMITTY === "J00" ? "?" : values?.MMVTCP ?? "",
             vtcs: item?.SALE === "1" ? "1" : "",
             chid: this.shared.userContext.USID,
             cpun: item?.UNMS || "",
@@ -684,18 +684,18 @@ export class InterfaceKITFGComponent implements OnInit {
             atmo: item?.ATMO || "",
             atmn: item?.ATMN || "",
             digi: values?.MMDIGI || item?.DIGI || "",
-            itgr: item?.HIE3 || "",
+            itgr: values?.MMITGR || "",
             newe: values?.MMGRWE || item?.GRWE || "",
             ppun: item?.UNMS || "",
-            hie1: item?.HIE3 ? item.HIE3.charAt(0) : "", // first char
-            hie2: item?.HIE3 ? item.HIE3.substring(0, 4) : "", // first 4 chars
-            hie3: item?.HIE3 || "",
+            hie1: values?.MMITGR ? values?.MMITGR.charAt(0) : "", // first char
+            hie2: values?.MMITGR ? values?.MMITGR?.substring(0, 4) : "", // first 4 chars
+            hie3: values?.MMITGR || "",
             aluc: "",//item?.UNMS || "",
             tpli: cpyItem,
             stun: item?.UNMS || "",
             spun: item?.UNMS || "",
             alun: item?.UNMS || "",
-            vtcp: values?.MMITTY === "J00" ? "" : "",
+            vtcp: values?.MMITTY === "J00" ? "?" : values?.MMVTCP ?? "",
             vtcs: item?.SALE === "1" ? "1" : "",
             chid: this.shared.userContext.USID,
             cpun: item?.UNMS || "",
@@ -872,8 +872,12 @@ export class InterfaceKITFGComponent implements OnInit {
       }
 
       for (const { key, list, field, label } of validations) {
-         const value = values[key];
+         let value = values[key];
+
          if (value) {
+            if (key == "MMVTCP") {
+               value = value.padStart(2, '0');
+            }
             const isValid = list.some(item => item?.[field] === value);
             if (!isValid) {
                this.shared.displayErrorMessage(`${this.lang.get('ERROR_TYPE')['ERROR']}`, `${label} ${value} ${this.lang.get('ERROR_TYPE')['NOT_VALID']}`);
