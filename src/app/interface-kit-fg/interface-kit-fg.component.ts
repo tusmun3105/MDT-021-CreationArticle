@@ -538,8 +538,8 @@ export class InterfaceKITFGComponent implements OnInit {
             this.shared.displaySuccessMessage(`${this.lang.get('ERROR_TYPE')['SUCCESS']}`, `${input.newItem} ${this.lang.get('ERROR_TYPE')['CREATED_WITH_SUCCESS']}`);
             const [respUpdPrice, respAddCUGEX, respUpdCUGEX] = await Promise.all([
                this.shared.call_MMS200_UpdItmPrice(values.MMITNO, values.MMDIGI),
-               this.shared.call_CUSEXT_AddFieldValue("MITMAS", input.newItem, input.delpic, input.delgam, input.delchef, ""),
-               this.shared.call_CUSEXT_ChgieldValue("MITMAS", input.newItem, input.delpic, input.delgam, input.delchef, "")
+               this.shared.call_CUSEXT_AddFieldValue("MITMAS", input.newItem, input.delpic?.toString(), input.delgam?.toString(), input.delchef?.toString(), ""),
+               this.shared.call_CUSEXT_ChgieldValue("MITMAS", input.newItem, input.delpic?.toString(), input.delgam?.toString(), input.delchef?.toString(), "")
             ]);
             this.iconUpdatePriceFG = "#icon-success";//Progess Bar FG
             this.updateItemBasicStepFG = true;//Progess Bar FG
@@ -736,8 +736,8 @@ export class InterfaceKITFGComponent implements OnInit {
             const [respCPYFACI, respUpdPrice, respAddCUGEX1, respUpdGUEX] = await Promise.all([
                this.shared.call_MMS200_CpyItmFac(inputFaci),
                this.shared.call_MMS200_UpdItmPrice(values.MMITNO, values.MMDIGI),
-               this.shared.call_CUSEXT_AddFieldValue("MITMAS", values.MMITNO, input.delpic, input.delgam, input.delchef, ""),
-               this.shared.call_CUSEXT_ChgieldValue("MITMAS", values.MMITNO, input.delpic, input.delgam, input.delchef, "")
+               this.shared.call_CUSEXT_AddFieldValue("MITMAS", values.MMITNO, input.delpic?.toString(), input.delgam?.toString(), input.delchef?.toString(), ""),
+               this.shared.call_CUSEXT_ChgieldValue("MITMAS", values.MMITNO, input.delpic?.toString(), input.delgam?.toString(), input.delchef?.toString(), "")
             ]);
 
             if (respCPYFACI.length > 0 && !respCPYFACI[0].error) {
@@ -859,7 +859,7 @@ export class InterfaceKITFGComponent implements OnInit {
       ];
 
       if (!values.MMITNO) {
-         this.shared.displayErrorMessage(`${this.lang.get('ERROR_TYPE')['ERROR']}`, `${this.lang.get('MITMAS_FIELD_LABELS')['MMITNO']} ${this.lang.get('MANDATORY_FIELD')['MANDATORY_FIELD']}`);
+         this.shared.displayErrorMessage(`${this.lang.get('ERROR_TYPE')['ERROR']}`, `${this.lang.get('MITMAS_FIELD_LABELS')['MMITNO']} ${this.lang.get('ERROR_TYPE')['MANDATORY_FIELD']}`);
          document.getElementById('MMITNO')?.focus();
          return { valid: false, itemBasic: {} };
       }
@@ -1068,10 +1068,8 @@ export class InterfaceKITFGComponent implements OnInit {
 
             if (record) {
                span.textContent = record.TX15 || "";
-               // console.log(`Reactive update: ${field.key} -> TX15="${span.textContent}"`);
             } else {
                span.textContent = "";
-               //console.log(`Reactive update: ${field.key} -> No match, span cleared`);
             }
          });
 

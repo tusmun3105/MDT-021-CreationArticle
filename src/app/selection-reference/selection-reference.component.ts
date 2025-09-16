@@ -23,9 +23,9 @@ export class SelectionReferenceComponent implements OnInit {
       // console.log("url", url);
       // const val = this.urlCheck(url);
       // console.log("val", val);
-      // const itno = "619REF0004";//val?.ITNO?.trim() || '';
-      // const whlo = "201";//val?.WHLO?.trim() || '';
-      // let panel = "MMA003BC"; //val?.PANEL?.trim() || '';
+      // const itno = "30004539ZZ";//val?.ITNO?.trim() || '';
+      // const whlo = "202";//val?.WHLO?.trim() || '';
+      // let panel = "MMA002BC"; //val?.PANEL?.trim() || '';
       // const faci = "200";//val?.FACI?.trim() || '';
       // const respITNO = await this.shared.call_MMS200_GetItem(itno);
 
@@ -38,13 +38,15 @@ export class SelectionReferenceComponent implements OnInit {
       let panel = val?.PANEL?.trim() || '';
       const faci = val?.FACI?.trim() || '';
       const respITNO = await this.shared.call_MMS200_GetItem(itno);
+
+
       if (respITNO.length === 0 || respITNO[0].error) return;
 
       const stcd = respITNO[0]?.STCD;
 
       if (panel === 'MMA001BC') {
          if (stcd === '1') {
-            this.shared.displayErrorMessage("Warning", "Please use MMS002 to create article of type compo!");
+            this.shared.displayErrorMessage(`${this.lang.get('CORRECT_PANEL')['WARNING']}`, `${this.lang.get('CORRECT_PANEL')['MMS002']}`);
             return;
          }
 
@@ -54,7 +56,7 @@ export class SelectionReferenceComponent implements OnInit {
             );
 
             if (respKIT_FG.length > 0) {
-               this.shared.displayErrorMessage("Warning", "Please use MMS003 to create article of type KIT!");
+               this.shared.displayErrorMessage(`${this.lang.get('CORRECT_PANEL')['WARNING']}`, `${this.lang.get('CORRECT_PANEL')['MMS003']}`);
                return;
             }
 
@@ -73,7 +75,7 @@ export class SelectionReferenceComponent implements OnInit {
             );
 
             if (respKIT_FG.length > 0) {
-               this.shared.displayErrorMessage("Warning", "Please use MMS003 to create article of type KIT!");
+               this.shared.displayErrorMessage(`${this.lang.get('CORRECT_PANEL')['WARNING']}`, `${this.lang.get('CORRECT_PANEL')['MMS003']}`);
                return;
             } else {
                const title = this.lang.get('panelFGTitle');
@@ -108,7 +110,7 @@ export class SelectionReferenceComponent implements OnInit {
 
       if (panel === 'MMA003BC') {
          if (stcd === '1') {
-            this.shared.displayErrorMessage("Warning", "Please use MMS002 to create article of type compo!");
+            this.shared.displayErrorMessage(`${this.lang.get('CORRECT_PANEL')['WARNING']}`, `${this.lang.get('CORRECT_PANEL')['MMS002']}`);
             return;
          } else if (stcd === '0') {
             const respKIT_FG = await this.shared.call_PDS001_Select(
@@ -122,7 +124,7 @@ export class SelectionReferenceComponent implements OnInit {
                });
                return;
             } else {
-               this.shared.displayErrorMessage("Warning", "Please use MMS001 to create article of type Frais Généraux !");
+               this.shared.displayErrorMessage(`${this.lang.get('CORRECT_PANEL')['WARNING']}`, `${this.lang.get('CORRECT_PANEL')['MMS001']}`);
                return;
             }
 

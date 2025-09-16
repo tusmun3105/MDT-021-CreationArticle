@@ -28,8 +28,10 @@
       "MBRESP": "Agent planning",
       "MBBUYE": "Buyer (S/T)",
       "MBSUNO": "Supplier (S/T)",
-      "MBGTRS": "Tech Grp Dist",
-      "MBWHSL": "Location"
+      "MMGRTS": "Tech Grp Dist",
+      "MBWHSL": "Location",
+      "MBORTY": "Order type",
+      "CREATELINE": "Create struct. line"
     },
     "MITPOP_FIELD_LABELS": {
       "POP1": "Alias",
@@ -92,6 +94,19 @@
       "LANGUAGE_MMS030": "Languages",
       "ADD_ALIAS": "Alias"
     },
+    "PROGRESS_BAR_OFOAOD": {
+      "VALIDATION_FIELD": "Validate fields",
+      "MMS001": "Copy/Upd item info",
+      "MMS030": "Languages",
+      "MMS025": "Alias",
+      "MMS002": "Cpy/Upd depot info",
+      "MMS003": "Cpy/Upd faci info",
+      "ENS025": "Eco-pro",
+      "MMS059": "Supply meth",
+      "PDS001": "Header strt",
+      "PDS002": "Line strt",
+      "PPS040": "Item supplier"
+    },
     "ERROR_TYPE": {
       "SUCCESS": "Success",
       "ERROR": "Error",
@@ -101,6 +116,12 @@
       "NOT_VALID": "is not valid",
       "MANDATORY_FIELD": "is required",
       "CREATED_WITH_SUCCESS": "was created successfully"
+    },
+    "CORRECT_PANEL": {
+      "WARNING": "Warning",
+      "MMS003": "Please use MMS003 to create article of type KIT!",
+      "MMS002": "Please use MMS002 to create article of type compo!",
+      "MMS001": "Please use MMS001 to create article of type Frais Généraux !"
     }
   },
   "FR": {
@@ -133,8 +154,10 @@
       "MBRESP": "Agent planning",
       "MBBUYE": "Acheteur (S/T)",
       "MBSUNO": "Fournisseur (S/T)",
-      "MBGTRS": "Classe grp techno",
-      "MBWHSL": "Emplacement"
+      "MMGRTS": "Classe grp techno",
+      "MBWHSL": "Emplacement",
+      "MBORTY": "Type d'ordre",
+      "CREATELINE": "Créa struct. ligne"
     },
     "MITPOP_FIELD_LABELS": {
       "POP1": "Alias",
@@ -197,6 +220,19 @@
       "LANGUAGE_MMS030": "Langues",
       "ADD_ALIAS": "Alias"
     },
+    "PROGRESS_BAR_OFOAOD": {
+      "VALIDATION_FIELD": "Valider champs",
+      "MMS001": "Copier/maj info article",
+      "MMS030": "Langues",
+      "MMS025": "Alias",
+      "MMS002": "Copier/maj info dépôt",
+      "MMS003": "Copier/maj info étab",
+      "ENS025": "Eco-pro",
+      "MMS059": "Mod d’appro",
+      "PDS001": "Strt entete",
+      "PDS002": "Str lignes",
+      "PPS040": "Article fourni"
+    },
     "ERROR_TYPE": {
       "SUCCESS": "Succès",
       "ERROR": "Erreur",
@@ -206,6 +242,12 @@
       "NOT_VALID": "n’est pas valide",
       "MANDATORY_FIELD": "est obligatoire",
       "CREATED_WITH_SUCCESS": "a été créé avec succès"
+    },
+    "CORRECT_PANEL": {
+      "WARNING": "Avertissement",
+      "MMS003": "Veuillez utiliser MMS003 pour créer un article de type KIT !",
+      "MMS002": "Veuillez utiliser MMS002 pour créer un article de type composant !",
+      "MMS001": "Veuillez utiliser MMS001 pour créer un article de type Frais Généraux !"
     }
   }
 }

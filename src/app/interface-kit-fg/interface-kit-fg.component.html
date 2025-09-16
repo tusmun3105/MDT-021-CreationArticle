@@ -171,8 +171,9 @@
                         </tr>
                         <tr>
                            <td><label for="POP2">{{ lang.get('MITPOP_FIELD_LABELS').POP2 }}</label></td>
-                           <td><input type="text" class="lookup input-sm" data-init="false" id="POP2" name="POP2"
-                                 formControlName="POP2" maxlength="13" style="margin-left: -25px;" /></td>
+                           <td><input type="text" class="lookup input-sm" id="POP2" name="POP2" formControlName="POP2"
+                                 maxlength="13" pattern="\d*" inputmode="numeric" style="margin-left: -25px;" /></td>
+
                         </tr>
                      </table>
                   </form>
