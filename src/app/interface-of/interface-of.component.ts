@@ -146,6 +146,7 @@ export class InterfaceOFComponent implements OnInit {
    hideFieldMITVEN: boolean = false;
    hideFieldMITBAL: boolean = false;
    hideFieldMITNWL: boolean = false;
+   hideMMS059ProgressBar: boolean = false;
    respItemBasicMMS001: any;
    respItemBasicMMS002: any;
    respItemBasicMMS003: any;
@@ -901,6 +902,12 @@ export class InterfaceOFComponent implements OnInit {
       }
       if (puit != "2") {
          this.hideFieldMITNWL = true;
+      }
+      if (puit == "1" || puit == "2") {
+         this.hideMMS059ProgressBar = false;
+      }
+      else if (puit == "3") {
+         this.hideMMS059ProgressBar = true;
       }
    }
 
