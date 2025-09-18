@@ -228,8 +228,24 @@ export class InterfaceOFComponent implements OnInit {
 
       }
       if (this.respItemBasicMMS002.length > 0) {
-         this.respItemBasicMMS003 = await this.shared.call_MMS200_GetItmFac(this.respItemBasicMMS002[0]?.FACI || '', window.history.state?.ITNOREF || '');
+         const faci = this.respItemBasicMMS002[0]?.FACI || '';
+         const itnoref = window.history.state?.ITNOREF || '';
+
+         const [mms003Response, wclnResponse] = await Promise.all([
+            this.shared.call_MMS200_GetItmFac(faci, itnoref),
+            this.shared.call_PDS010_LstWorkCenters(faci)
+         ]);
+
+         this.respItemBasicMMS003 = mms003Response;
+         this.respWCLN = wclnResponse;
+
+         if (this.respWCLN.length > 0 && !this.respWCLN[0].error) {
+            this.lookupWCLN.updateDataset(this.respWCLN);
+         } else {
+            this.lookupWCLN.updateDataset([]);
+         }
       }
+
       let rawECRG = "";
       if (this.respItemENS025?.length > 0) {
          const repl = this.respItemENS025?.[0]?.REPL ?? "";
@@ -791,7 +807,6 @@ export class InterfaceOFComponent implements OnInit {
          this.respUSID,
          this.respGRTS,
          this.respSUNO,
-         this.respWCLN,
          this.respWHSL,
          this.respORTY,
          this.respCUCD
@@ -810,7 +825,6 @@ export class InterfaceOFComponent implements OnInit {
          this.shared.call_MNS150_LstResp(),
          this.shared.call_MMS043__LstDistributionGroupTech(),
          this.shared.call_CRS620_LstSuppliers(),
-         this.shared.call_PDS010_LstWorkCenters(window.history.state?.FACI || ""),
          this.shared.call_MMS010_LstEmplacement(window.history.state?.WHLO || ""),
          this.shared.call_PPS095_LstOrderType(this.shared.userContext.currentCompany),
          this.shared.call_EXPORT_LstCurrency()
@@ -832,7 +846,7 @@ export class InterfaceOFComponent implements OnInit {
       this.lookupBUYE?.updateDataset(this.respUSID.length > 0 && this.respUSID[0].error ? [] : this.respUSID);
       this.lookupGRTS?.updateDataset(this.respGRTS.length > 0 && this.respGRTS[0].error ? [] : this.respGRTS);
       this.lookupSUNO?.updateDataset(this.respSUNO.length > 0 && this.respSUNO[0].error ? [] : this.respSUNO);
-      this.lookupWCLN?.updateDataset(this.respWCLN.length > 0 && this.respWCLN[0].error ? [] : this.respWCLN);
+      this.lookupWCLN?.updateDataset([]);
       this.lookupWHSL?.updateDataset(this.respWHSL.length > 0 && this.respWHSL[0].error ? [] : this.respWHSL);
       this.lookupCUCD?.updateDataset(this.respCUCD.length > 0 && this.respCUCD[0].error ? [] : this.respCUCD);
       if (this.respORTY.length > 0 && this.respORTY[0].error) {
@@ -1474,7 +1488,7 @@ export class InterfaceOFComponent implements OnInit {
    async updateLookupCIECOP() {
       try {
          const respENS015 = await this.shared.call_ListECO_Product(
-            `CEECOC, CETX15, CETX40 from CECOCC where CECONO = ${this.shared.userContext.currentCompany} and CEECRG = ${this.formMITMAS.value.CIECRG?.trim()} and CECSOR = 'FR'`
+            `CGECOP, CGTX15, CGTX40 from CECOPC where CGCONO = ${this.shared.userContext.currentCompany} and CGECRG = ${this.formMITMAS.value.CIECRG?.trim()} and CGCSOR = 'FR'`
          );
 
          if (respENS015.length > 0) {

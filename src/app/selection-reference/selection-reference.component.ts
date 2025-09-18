@@ -20,24 +20,24 @@ export class SelectionReferenceComponent implements OnInit {
    }
 
    async handlePanelNavigation(url: string) {
-      console.log("url", url);
-      const val = this.urlCheck(url);
-      console.log("val", val);
-      const itno = "GB00015250";//val?.ITNO?.trim() || '';
-      const whlo = "202";//val?.WHLO?.trim() || '';
-      let panel = "MMA002BC"; //val?.PANEL?.trim() || '';
-      const faci = "200";//val?.FACI?.trim() || '';
-      const respITNO = await this.shared.call_MMS200_GetItem(itno);
-
-
       // console.log("url", url);
       // const val = this.urlCheck(url);
       // console.log("val", val);
-      // const itno = val?.ITNO?.trim() || '';
-      // const whlo = val?.WHLO?.trim() || '';
-      // let panel = val?.PANEL?.trim() || '';
-      // const faci = val?.FACI?.trim() || '';
+      // const itno = "GB00015250";//val?.ITNO?.trim() || '';
+      // const whlo = "202";//val?.WHLO?.trim() || '';
+      // let panel = "MMA002BC"; //val?.PANEL?.trim() || '';
+      // const faci = "200";//val?.FACI?.trim() || '';
       // const respITNO = await this.shared.call_MMS200_GetItem(itno);
+
+
+      console.log("url", url);
+      const val = this.urlCheck(url);
+      console.log("val", val);
+      const itno = val?.ITNO?.trim() || '';
+      const whlo = val?.WHLO?.trim() || '';
+      let panel = val?.PANEL?.trim() || '';
+      const faci = val?.FACI?.trim() || '';
+      const respITNO = await this.shared.call_MMS200_GetItem(itno);
 
 
       if (respITNO.length === 0 || respITNO[0].error) return;

@@ -1561,48 +1561,7 @@ export class SharedService {
          return [{ error: true, errorMessage: error }];
       }
    }
-   async call_ENS015_LstEcoContri() {
-      try {
-         const inputRecord = new MIRecord();
-         inputRecord.setString('SEPC', ";");
-         inputRecord.setString('HDRS', "0");
-         inputRecord.setString('QERY', `CEECOC, CETX15, CETX40 from CECOCC where CECONO = ${this.userContext.currentCompany}`);
 
-         const request: IMIRequest = {
-            program: 'EXPORTMI',
-            transaction: 'Select',
-            record: inputRecord,
-            maxReturnedRecords: 0,
-            outputFields: ['REPL']
-
-         };
-
-         const response: IMIResponse = await this.miService.execute(request).toPromise();
-
-         if (!response.hasError()) {
-            if (response.items.length > 0) {
-               const items = response.items;
-               return items.map(item => {
-                  const [CEECOC, CETX15, CETX40] = (item.REPL || '').split(';');
-                  return {
-                     ...item,
-                     ECOP: CEECOC || '',
-                     TX15: CETX15 || '',
-                     TX40: CETX40 || ''
-                  };
-               });
-               ;
-            } else {
-               return response.items;
-            }
-         } else {
-            return [{ error: true, errorMessage: response.errorMessage }];
-         }
-      } catch (error) {
-         console.error("Error:", error);
-         return [{ error: true, errorMessage: error }];
-      }
-   }
    async call_MNS150_LstResp() {
       try {
          const inputRecord = new MIRecord();
