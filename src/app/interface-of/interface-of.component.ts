@@ -554,7 +554,7 @@ export class InterfaceOFComponent implements OnInit {
 
          //     ************************     ENS025     ************************     \\
          this.ENS025 = true;
-         await this.launchENS025(this.formMITMAS.value.CIECRG, this.formMITMAS.value.MMITNO.toUpperCase());
+         await this.launchENS025(this.formMITMAS.value.CIECRG, this.formMITMAS.value.CIECOP, this.formMITMAS.value.MMITNO.toUpperCase());
          this.iconENS025 = "#icon-success";
 
          //     ************************     Creation of Item in Depot/Facility Supplier for all interfaces     ************************     \\
@@ -1511,7 +1511,7 @@ export class InterfaceOFComponent implements OnInit {
          console.error("Error fetching ENS015:", error);
       }
    }
-   async launchENS025(org: string, item: string) {
+   async launchENS025(org: string, contri: string, item: string) {
       const today = new Date();
       const year = today.getFullYear();
       const month = String(today.getMonth() + 1).padStart(2, '0');
@@ -1525,7 +1525,7 @@ export class InterfaceOFComponent implements OnInit {
               <field name="WBQTTP">1</field>
               <field name="W1OBKV">{{org}}</field>
               <field name="W2OBKV">FR</field>
-              <field name="W3OBKV">{{org}}</field>
+              <field name="W3OBKV">{{contri}}</field>
               <field name="W4OBKV">{{item}}</field>
           </step>
           <step command="KEY" value="ENTER" />
@@ -1540,6 +1540,7 @@ export class InterfaceOFComponent implements OnInit {
 
       const replacements: Record<string, string> = {
          '{{org}}': org?.trim(),
+         '{{contri}}': contri?.trim(),
          '{{item}}': item?.trim(),
          '{{fromdate}}': yyyyMMdd,
       };
