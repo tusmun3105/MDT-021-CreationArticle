@@ -630,7 +630,7 @@
                            <use [attr.href]="iconPDS002 || '#icon-empty-circle'"></use>
                         </svg>
                      </span>
-                     <span class="separator" [ngClass]="PDS002 ? 'darker' : ''"></span>
+                     <span class="separator" [ngClass]="PDS002 ? 'darker' : ''" *ngIf="!hidePDS002ProgressBar"></span>
                   </div>
                </div>
 

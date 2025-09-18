@@ -147,6 +147,7 @@ export class InterfaceOFComponent implements OnInit {
    hideFieldMITBAL: boolean = false;
    hideFieldMITNWL: boolean = false;
    hideMMS059ProgressBar: boolean = false;
+   hidePDS002ProgressBar: boolean = true;
    respItemBasicMMS001: any;
    respItemBasicMMS002: any;
    respItemBasicMMS003: any;
