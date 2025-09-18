@@ -31,7 +31,8 @@
       "MMGRTS": "Tech Grp Dist",
       "MBWHSL": "Location",
       "MBORTY": "Order type",
-      "CREATELINE": "Create struct. line"
+      "CREATELINE": "Create struct. line",
+      "MBLEA1": "Lead Time"
     },
     "MITPOP_FIELD_LABELS": {
       "POP1": "Alias",
@@ -45,12 +46,21 @@
       "M9WCLN": "Production Line"
     },
     "CUGEX_FIELD_LABELS": {
-      "DELPIC": "PIC Std Lead Time",
-      "DELGAM": "PIC Prod Lead Time"
+      "DELPIC": "Std Lead Time",
+      "DELGAM": "Prod Lead Time"
     },
     "CECOCI_FIELD_LABELS": {
       "CIECRG": "Eco-Organism",
       "CIECOP": "Eco-Contribution"
+    },
+    "MITVEN_FIELD_LABELS": {
+      "IFSITE": "Supp Ref",
+      "IFSITT": "Supp Name",
+      "IFPUPR": "Purch Price",
+      "IFPUCD": "PCB Price",
+      "IFCUCD": "Currency",
+      "IFUVDT": "End Valid",
+      "BLOCTXT": "Text Block"
     },
     "TX15": "Name",
     "TX40": "Description",
@@ -99,7 +109,7 @@
       "MMS001": "Copy/Upd item info",
       "MMS030": "Languages",
       "MMS025": "Alias",
-      "MMS002": "Cpy/Upd depot info",
+      "MMS002": "Cpy/Upd warehouse info",
       "MMS003": "Cpy/Upd faci info",
       "ENS025": "Eco-pro",
       "MMS059": "Supply meth",
@@ -150,14 +160,15 @@
       "MMDWNO": "N° de plan"
     },
     "MITBAL_FIELD_LABELS": {
-      "MBWHLO": "Warehouse",
-      "MBRESP": "Agent planning",
+      "MBWHLO": "Dépôt",
+      "MBRESP": "Agt planning",
       "MBBUYE": "Acheteur (S/T)",
       "MBSUNO": "Fournisseur (S/T)",
       "MMGRTS": "Classe grp techno",
       "MBWHSL": "Emplacement",
       "MBORTY": "Type d'ordre",
-      "CREATELINE": "Créa struct. ligne"
+      "CREATELINE": "Créa struct. ligne",
+      "MBLEA1": "Délai appro"
     },
     "MITPOP_FIELD_LABELS": {
       "POP1": "Alias",
@@ -171,12 +182,21 @@
       "M9WCLN": "Ligne Prod"
     },
     "CUGEX_FIELD_LABELS": {
-      "DELPIC": "Délai PIC Std",
-      "DELGAM": "Délai PIC Prod"
+      "DELPIC": "Délai Std",
+      "DELGAM": "Délai Prod"
     },
     "CECOCI_FIELD_LABELS": {
       "CIECRG": "Eco-Organisme",
       "CIECOP": "Eco-Contribution"
+    },
+    "MITVEN_FIELD_LABELS": {
+      "IFSITE": "Ref fourni",
+      "IFSITT": "Désig fourni",
+      "IFPUPR": "Prix achat",
+      "IFPUCD": "PCB Prix",
+      "IFCUCD": "Devise",
+      "IFUVDT": "Date fin val",
+      "BLOCTXT": "Bloc texte"
     },
     "TX15": "Nom",
     "TX40": "Désignation",

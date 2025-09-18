@@ -421,7 +421,48 @@ export class SharedService {
          return [{ error: true, errorMessage: error }];
       }
    }
+   async call_EXPORT_LstCurrency() {
+      try {
+         const inputRecord = new MIRecord();
+         inputRecord.setString('SEPC', ";");
+         inputRecord.setString('HDRS', "0");
+         inputRecord.setString('QERY', `CTSTKY, CTTX15, CTTX40 from CSYTAB where CTCONO = ${this.userContext.currentCompany} and CTSTCO = CUCD`);
 
+         const request: IMIRequest = {
+            program: 'EXPORTMI',
+            transaction: 'Select',
+            record: inputRecord,
+            maxReturnedRecords: 0,
+            outputFields: ['REPL']
+
+         };
+
+         const response: IMIResponse = await this.miService.execute(request).toPromise();
+
+         if (!response.hasError()) {
+            if (response.items.length > 0) {
+               const items = response.items;
+               return items.map(item => {
+                  const [CTSTKY, CTTX15, CTTX40] = (item.REPL || '').split(';');
+                  return {
+                     ...item,
+                     CUCD: CTSTKY || '',
+                     TX15: CTTX15 || '',
+                     TX40: CTTX40 || ''
+                  };
+               });
+               ;
+            } else {
+               return response.items;
+            }
+         } else {
+            return [{ error: true, errorMessage: response.errorMessage }];
+         }
+      } catch (error) {
+         console.error("Error:", error);
+         return [{ error: true, errorMessage: error }];
+      }
+   }
    async call_EXPORT_LstItemMatiereCFI3() {
       try {
          const inputRecord = new MIRecord();
@@ -937,11 +978,11 @@ export class SharedService {
          inputRecord.setString("VTCS", input.VTCS);
          inputRecord.setString("CPUN", input.CPUN);
          inputRecord.setString("DWNO", input.DWNO);
-         // inputRecord.setString("HIE1", input.HIE1);
-         // inputRecord.setString("HIE2", input.HIE2);
-         // inputRecord.setString("HIE3", input.HIE3);
-         // inputRecord.setString("INDI", input.INDI);
-         // inputRecord.setString("BACD", input.BACD);
+         inputRecord.setString("HIE1", input.HIE1);//
+         inputRecord.setString("HIE2", input.HIE2);//
+         inputRecord.setString("HIE3", input.HIE3);//
+         inputRecord.setString("INDI", input.INDI);//
+         inputRecord.setString("BACD", input.BACD);//
          const request: IMIRequest = {
             program: "MMS200MI",
             transaction: "CpyItmBasic",
