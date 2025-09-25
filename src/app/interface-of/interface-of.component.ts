@@ -64,6 +64,9 @@ export class InterfaceOFComponent implements OnInit {
    referenceModel = "";
    whlo = "";
 
+
+   puit = "";
+
    formMITMAS = new FormGroup({
       MMITNO: new FormControl(''),
       MMSTAT: new FormControl('10'),
@@ -140,7 +143,7 @@ export class InterfaceOFComponent implements OnInit {
       BLOCTXT: new FormControl(''),
    });
    formMITNWL = new FormGroup({
-      LDF: new FormControl(true),
+      LDF: new FormControl(false),
    });
 
    hideFieldMITVEN: boolean = false;
@@ -151,7 +154,7 @@ export class InterfaceOFComponent implements OnInit {
    respItemBasicMMS001: any;
    respItemBasicMMS002: any;
    respItemBasicMMS003: any;
-   respWarehouseBalance: any;
+   respItemWarehouseBasicLEA1: any;
    respItemENS015: any;
    respItemENS025: any;
    respItemDIGI: any;
@@ -201,18 +204,19 @@ export class InterfaceOFComponent implements OnInit {
          this.respItemENS025,
          this.respItemDIGI,
          this.respMMS030,
-         this.respWarehouseBalance
+         this.respItemWarehouseBasicLEA1
 
       ] = await Promise.all([
          this.shared.call_MMS200_GetItem(window.history.state?.ITNOREF),
          this.shared.call_MMS200_GetItmWhsBasic(window.history.state?.WHLO, window.history.state?.ITNOREF),
          this.shared.call_MMS025_LstAlias(window.history.state?.ITNOREF || ''),
          this.shared.call_CUSEXT_GetFieldValue("MITMAS", window.history.state.ITNOREF),
-         this.shared.call_ListECO_Product(`CIECRG, CIECRG from CECOCI where CICONO = ${this.shared.userContext.currentCompany} and CIITNO = ${window.history.state.ITNOREF} and CICSOR = FR`),
-         this.shared.call_MMS200_GetItmDIGI_ACRF_(`MMDIGI from MITMAS where MMITNO = ${window.history.state.ITNOREF}`),
+         this.shared.call_ListECO_Product(`CIECRG, CIECRG, CIECOP from CECOCI where CICONO = ${this.shared.userContext.currentCompany} and CIITNO = ${window.history.state.ITNOREF} and CICSOR = FR`),
+         this.shared.call_MMS200_GetItmDIGI_ACRF(`MMDIGI from MITMAS where MMITNO = ${window.history.state.ITNOREF}`),
          this.shared.call_MMS030_List(window.history.state.ITNOREF),
-         this.shared.call_MMS200_GetItemWarehouseBal(window.history.state?.WHLO, window.history.state?.ITNOREF),
+         this.shared.call_EXPORT_LEA1(window.history.state?.WHLO, window.history.state?.ITNOREF)
       ]);
+
 
       //Retrieve Language for Item description
       if (this.respMMS030.length > 0 && !this.respMMS030[0].error) {
@@ -249,12 +253,16 @@ export class InterfaceOFComponent implements OnInit {
       }
 
       let rawECRG = "";
+      let rawECOP = "";
+
       if (this.respItemENS025?.length > 0) {
          const repl = this.respItemENS025?.[0]?.REPL ?? "";
          rawECRG = repl.split(";")[0] || "";
+         rawECOP = repl.split(";")[2] || "";
 
          this.formMITMAS.patchValue({
-            CIECRG: rawECRG.trim()
+            CIECRG: rawECRG?.trim(),
+            CIECOP: rawECRG?.trim(),
          });
       }
 
@@ -264,10 +272,12 @@ export class InterfaceOFComponent implements OnInit {
          const itemBasic = this.respItemBasicMMS001[0];
          const itemFacBasic = this.respItemBasicMMS003[0];
          const itemWhsBasic = this.respItemBasicMMS002[0];
+         const itemWhsBasicLEA1 = this.respItemWarehouseBasicLEA1[0];
+         const digi = this.respItemDIGI[0]?.REPL?.split(";")[0] || ""
 
          this.formMITMAS.patchValue({
             MMITNO: itemBasic?.ITNO?.toUpperCase() || "",
-            MMSTAT: itemBasic?.STAT || "",
+            MMSTAT: "10",
             MMITDS: itemBasic?.ITDS || "",
             MMFUDS: itemBasic?.FUDS || "",
             MMPRGP: itemBasic?.PRGP || "",
@@ -280,7 +290,7 @@ export class InterfaceOFComponent implements OnInit {
             M9ORCO: itemFacBasic?.ORCO || "",
             MMGRWE: itemBasic?.GRWE || "",
             MMCFI3: itemBasic?.CFI3 || "",
-            MMDIGI: itemBasic?.DIGI || ""
+            MMDIGI: digi
          });
 
          this.formMITBAL.patchValue({
@@ -288,11 +298,13 @@ export class InterfaceOFComponent implements OnInit {
             MBBUYE: itemWhsBasic?.BUYE || "",
             MBSUNO: itemWhsBasic?.SUNO || "",
             MMGRTS: itemBasic?.GRTS || "",
-            MBWHSL: window.history.state?.WHLO === "10S" ? "" : (itemWhsBasic?.WHSL || ""),
+            MBWHSL: window.history.state?.WHLO === "10S" ? "" : (this.shared.warehouseLocationRefModel || ""),
             MBORTY: itemWhsBasic?.ORTY || ""
          });
 
-
+         this.formMITVEN.patchValue({
+            MBLEA1: itemWhsBasicLEA1?.REPL || ""
+         });
          this.formMITFAC.patchValue({
             M9ACRF: itemFacBasic?.ACRF || "",
             M9VAMT: itemFacBasic?.VAMT || "0",
@@ -495,20 +507,49 @@ export class InterfaceOFComponent implements OnInit {
          this.MMS030 = true;
          const values_MITLAD = {
             LMCD_GB_ITDS: (this.formMITLAD.value.LMCD_GB_ITDS ?? '').toString().trim(),
-            LMCD_GB_FUDS: (this.formMITLAD.value.LMCD_GB_FUDS ?? '').toString().trim(),
+            LMCD_GB_FUDS: (() => {
+               const itds = (this.formMITLAD.value.LMCD_GB_ITDS ?? '').toString().trim();
+               const fuds = (this.formMITLAD.value.LMCD_GB_FUDS ?? '').toString().trim();
+               return !fuds && itds ? itds : fuds;
+            })(),
             LMCD_DE_ITDS: (this.formMITLAD.value.LMCD_DE_ITDS ?? '').toString().trim(),
-            LMCD_DE_FUDS: (this.formMITLAD.value.LMCD_DE_FUDS ?? '').toString().trim(),
+            LMCD_DE_FUDS: (() => {
+               const itds = (this.formMITLAD.value.LMCD_DE_ITDS ?? '').toString().trim();
+               const fuds = (this.formMITLAD.value.LMCD_DE_FUDS ?? '').toString().trim();
+               return !fuds && itds ? itds : fuds;
+            })(),
             LMCD_PL_ITDS: (this.formMITLAD.value.LMCD_PL_ITDS ?? '').toString().trim(),
-            LMCD_PL_FUDS: (this.formMITLAD.value.LMCD_PL_FUDS ?? '').toString().trim(),
+            LMCD_PL_FUDS: (() => {
+               const itds = (this.formMITLAD.value.LMCD_PL_ITDS ?? '').toString().trim();
+               const fuds = (this.formMITLAD.value.LMCD_PL_FUDS ?? '').toString().trim();
+               return !fuds && itds ? itds : fuds;
+            })(),
             LMCD_NL_ITDS: (this.formMITLAD.value.LMCD_NL_ITDS ?? '').toString().trim(),
-            LMCD_NL_FUDS: (this.formMITLAD.value.LMCD_NL_FUDS ?? '').toString().trim(),
+            LMCD_NL_FUDS: (() => {
+               const itds = (this.formMITLAD.value.LMCD_NL_ITDS ?? '').toString().trim();
+               const fuds = (this.formMITLAD.value.LMCD_NL_FUDS ?? '').toString().trim();
+               return !fuds && itds ? itds : fuds;
+            })(),
             LMCD_PT_ITDS: (this.formMITLAD.value.LMCD_PT_ITDS ?? '').toString().trim(),
-            LMCD_PT_FUDS: (this.formMITLAD.value.LMCD_PT_FUDS ?? '').toString().trim(),
+            LMCD_PT_FUDS: (() => {
+               const itds = (this.formMITLAD.value.LMCD_PT_ITDS ?? '').toString().trim();
+               const fuds = (this.formMITLAD.value.LMCD_PT_FUDS ?? '').toString().trim();
+               return !fuds && itds ? itds : fuds;
+            })(),
             LMCD_ES_ITDS: (this.formMITLAD.value.LMCD_ES_ITDS ?? '').toString().trim(),
-            LMCD_ES_FUDS: (this.formMITLAD.value.LMCD_ES_FUDS ?? '').toString().trim(),
+            LMCD_ES_FUDS: (() => {
+               const itds = (this.formMITLAD.value.LMCD_ES_ITDS ?? '').toString().trim();
+               const fuds = (this.formMITLAD.value.LMCD_ES_FUDS ?? '').toString().trim();
+               return !fuds && itds ? itds : fuds;
+            })(),
             LMCD_FR_ITDS: (this.formMITLAD.value.LMCD_FR_ITDS ?? '').toString().trim(),
-            LMCD_FR_FUDS: (this.formMITLAD.value.LMCD_FR_FUDS ?? '').toString().trim(),
+            LMCD_FR_FUDS: (() => {
+               const itds = (this.formMITLAD.value.LMCD_FR_ITDS ?? '').toString().trim();
+               const fuds = (this.formMITLAD.value.LMCD_FR_FUDS ?? '').toString().trim();
+               return !fuds && itds ? itds : fuds;
+            })(),
          };
+
          const countries = ['GB', 'DE', 'PL', 'NL', 'PT', 'ES', 'FR'];
 
          const promises = countries
@@ -556,7 +597,9 @@ export class InterfaceOFComponent implements OnInit {
 
          //     ************************     ENS025     ************************     \\
          this.ENS025 = true;
-         await this.launchENS025(this.formMITMAS.value.CIECRG, this.formMITMAS.value.CIECOP, this.formMITMAS.value.MMITNO.toUpperCase());
+         if (this.formMITMAS.value.CIECRG?.trim() != "" && this.formMITMAS.value.CIECOP?.trim() != "") {
+            await this.launchENS025(this.formMITMAS.value.CIECRG, this.formMITMAS.value.CIECOP, this.formMITMAS.value.MMITNO.toUpperCase());
+         }
          this.iconENS025 = "#icon-success";
 
          //     ************************     Creation of Item in Depot/Facility Supplier for all interfaces     ************************     \\
@@ -567,51 +610,64 @@ export class InterfaceOFComponent implements OnInit {
             const respFaciSupp = await this.shared.call_MMS200_CpyItmFacOF_Supplier(valueMITBAL);
          }
          //     ************************     Creation of Item in Depot/Facility Client for all interfaces     ************************     \\
-         const valueMITFAC = await this.valueMITFAC();
+         let valueMITFAC = await this.valueMITFAC();
 
          this.MMS002 = true;
-         const respWhsClient = await this.shared.call_MMS200_CpyItmWhsOF_Client(valueMITBAL, valueMITFAC);
+         const respWhsClient = await this.shared.call_MMS200_CpyItmWhsOF_Client(valueMITBAL, value);
          if (respWhsClient.length > 0 && respWhsClient[0].error) {
             this.iconMMS002 = "#icon-rejected-solid";
          }
          else {
+            const lea1Value = this.formMITVEN.value.MBLEA1?.toString()?.trim() || "0";
+            const respWhsLEA1 = await this.shared.call_MMS200_UpdItmWhsBasicLEA1(
+               window.history.state?.WHLO,
+               value.newITNO,
+               lea1Value
+            );
+            this.MMS003 = true;
+            const respECCC = await this.shared.call_MMS200_GetItmFac(valueMITBAL?.FACI, valueMITBAL?.refModelArticle);
+            value.ECCC = "";
+            if (respECCC.length > 0 && !respECCC[0].error) {
+               value.ECCC = respECCC[0]?.ECCC;
+            }
+            const respFaciClient = await this.shared.call_MMS200_UpdItmFacOF_Client(valueMITBAL, valueMITFAC);
+            if (respFaciClient.length > 0 && respFaciClient[0].error) {
+               this.iconMMS003 = "#icon-rejected-solid";
+            }
+            else {
+               this.iconMMS003 = "#icon-success";
+            }
             this.iconMMS002 = "#icon-success";
-         }
-
-         this.MMS003 = true;
-         const respFaciClient = await this.shared.call_MMS200_CpyItmFacOF_Client(valueMITBAL, valueMITFAC);
-         if (respFaciClient.length > 0 && respFaciClient[0].error) {
-            this.iconMMS003 = "#icon-rejected-solid";
-         }
-         else {
-            this.iconMMS003 = "#icon-success";
          }
 
 
          // ************************     MMS059     ************************ \\
          this.MMS059 = true;
-         const respMMS059_List = await this.shared.call_MMS059_List("ADV1");
-         let recordFound: any;
+         if (this.formMITNWL.value.LDF) {
+            const respMMS059_List = await this.shared.call_MMS059_List("ADV1");
+            let recordFound: any;
 
-         if (respMMS059_List.length > 0 && !respMMS059_List[0].error) {
-            recordFound = respMMS059_List.find(
-               (rec: any) => rec.SPLM === "ADV1" && rec.PREX === "4" && rec.SPLA === "1" && rec.OBV1 === valueMITBAL?.refModelArticle
-            );
-            if (recordFound) {
-               const orty = valueMITBAL?.ORTY || "";
-               const newORTY = orty.startsWith("ITJ") ? "240" : "200";
-               const respMMS059Aadd = await this.shared.call_MMS059_Add(recordFound, value.newITNO, newORTY);
-               if (respMMS059Aadd.length > 0 && respMMS059Aadd[0].error) {
+            if (respMMS059_List.length > 0 && !respMMS059_List[0].error) {
+               recordFound = respMMS059_List.find(
+                  (rec: any) => rec.SPLM === "ADV1" && rec.PREX === "4" && rec.SPLA === "1" && rec.OBV1 === valueMITBAL?.refModelArticle
+               );
+               if (recordFound) {
+                  const orty = valueMITBAL?.ORTY || "";
+                  const newORTY = orty.startsWith("ITJ") ? "240" : "200";
+                  const respMMS059Aadd = await this.shared.call_MMS059_Add(recordFound, value.newITNO, newORTY);
+                  if (respMMS059Aadd.length > 0 && respMMS059Aadd[0].error) {
+                     this.iconMMS059 = "#icon-rejected-solid";
+                  }
+                  else {
+                     this.iconMMS059 = "#icon-success";
+                  }
+               } else {
                   this.iconMMS059 = "#icon-rejected-solid";
                }
-               else {
-                  this.iconMMS059 = "#icon-success";
-               }
-            } else {
-               this.iconMMS059 = "#icon-rejected-solid";
             }
+         } else {
+            this.iconMMS059 = "#icon-success";
          }
-
 
          // ************************     PDS001  & PDS002   ************************ \\
          if (window.history.state?.PUIT == "1") {
@@ -654,7 +710,7 @@ export class InterfaceOFComponent implements OnInit {
          if (window.history.state?.PUIT == "2") {
             this.PPS040 = true;
             const valMITVEN = await this.valueMITVEN();
-            if (this.formMITNWL.value.LDF) {
+            if (this.hideFieldMITVEN == false) {
                const respPPS040 = await this.shared.call_PPS040_AddItemSupplier(value.newITNO, valueMITBAL.SUNO, "1", "20", valueMITFAC.M9ORCO, valMITVEN.SITE, valMITVEN.SITT, valMITVEN.PUPR, valMITVEN.PUCD, valMITVEN.UVDT);
                if (respPPS040.length > 0 && respPPS040[0].error) {
                   this.iconPPS040 = "#icon-rejected-solid";
@@ -713,7 +769,10 @@ export class InterfaceOFComponent implements OnInit {
             { id: 'TX15', name: TX15, field: 'TX15', formatter: Soho.Formatters.Text, filterType: 'text' },
             { id: 'TX40', name: TX40, field: 'TX40', formatter: Soho.Formatters.Text, filterType: 'text' }
          ];
-         const removeTX40For = ["DWNO", "USID", "SUNO", "WCLN", "WHSL"];
+         let removeTX40For = ["DWNO", "USID", "SUNO", "WCLN", "WHSL"];
+         if (window.history.state?.PUIT == "3") {
+            removeTX40For.push("ORTY");
+         }
 
          if (removeTX40For.includes(field.colId)) {
             columns = columns.filter(col => col.id !== "TX40");
@@ -828,7 +887,7 @@ export class InterfaceOFComponent implements OnInit {
          this.shared.call_MMS043__LstDistributionGroupTech(),
          this.shared.call_CRS620_LstSuppliers(),
          this.shared.call_MMS010_LstEmplacement(window.history.state?.WHLO || ""),
-         this.shared.call_PPS095_LstOrderType(this.shared.userContext.currentCompany),
+         this.shared.call_LstOrderType(this.shared.userContext.currentCompany, window.history.state?.PUIT),
          this.shared.call_EXPORT_LstCurrency()
       ]);
 
@@ -909,6 +968,10 @@ export class InterfaceOFComponent implements OnInit {
       }
       else if (puit == "3") {
          this.hideMMS059ProgressBar = true;
+      }
+
+      if (puit == "1") {
+         this.puit = "1";
       }
    }
 
@@ -1297,8 +1360,12 @@ export class InterfaceOFComponent implements OnInit {
          value.refModelArticle = "T113000000";
       }
       value.STAT = this.formMITMAS.value.MMSTAT;
-      value.ITDS = this.formMITMAS.value.MMITDS || "?";
-      value.FUDS = this.formMITMAS.value.MMFUDS || "?";
+      value.ITDS = (this.formMITMAS.value.MMITDS ?? '?').toString().trim();
+      value.FUDS = (() => {
+         const itds = (this.formMITMAS.value.MMITDS ?? '?').toString().trim();
+         const fuds = (this.formMITMAS.value.MMFUDS ?? '?').toString().trim();
+         return !fuds && itds ? itds : fuds;
+      })();
       value.RESP = respItemBasic?.RESP;
       value.DCCD = respItemBasic?.DCCD;
       value.UNMS = respItemBasic?.UNMS;
@@ -1318,7 +1385,7 @@ export class InterfaceOFComponent implements OnInit {
       value.TPCD = this.formMITMAS.value.MMDIGI;
       value.NEWE = this.formMITMAS.value.MMGRWE;
       value.PPUN = respItemBasic?.UNMS;
-
+      value.ITGR = this.formMITMAS.value.MMITGR;
       // HIE1 = first character of ITGR
       value.HIE1 = this.formMITMAS.value.MMITGR
          ? this.formMITMAS.value.MMITGR.substring(0, 1)
@@ -1339,8 +1406,8 @@ export class InterfaceOFComponent implements OnInit {
       value.DWNO = this.formMITMAS.value.MMDWNO;
 
 
-      // VTCP = if ITTY == "J00" then "?", else ""
-      value.VTCP = this.formMITFAC.value.MMITTY === "J00" ? "?" : "";
+      // VTCP = if ITTY == "J00" then "00", else ""
+      value.VTCP = this.formMITFAC.value.MMITTY === "J00" ? "00" : this.formMITFAC.value.MMVTCP ?? "00";
 
       // VTCS = conditional assignment based on SALE and STCD
       if (respItemBasic?.SALE === 1 && respItemBasic?.STCD === 1) {
@@ -1354,18 +1421,12 @@ export class InterfaceOFComponent implements OnInit {
       value.CPUN = respItemBasic?.UNMS;
       value.TPCD = "0";
 
-      let warehouseBal = "0";
       const objCtrlComp = this.formMITFAC.value.M9ACRF;
-      if (this.respWarehouseBalance.length > 0 && !this.respWarehouseBalance[0].error) {
-         warehouseBal = this.respWarehouseBalance[0]?.STQT;
-      }
+
       const itty = this.formMITFAC.value.MMITTY;
 
-      if ((itty == "G00" || itty == "H00" || itty == "I00") && (Number(warehouseBal) != 0)) {
-         value.INDI = "3";
-         value.BACD = "2";
-      }
-      else if (itty == "G00" || itty == "H00" || itty == "I00") {
+
+      if (itty == "G00" || itty == "H00" || itty == "I00") {
          value.INDI = "3";
          value.BACD = "2";
       } else if (itty == "A00" && objCtrlComp == "ITA01") {
@@ -1389,6 +1450,9 @@ export class InterfaceOFComponent implements OnInit {
       if (respTPCD.length > 0) {
          value.TPCD = respTPCD[0]?.REPL;
       }
+
+      //DIGI
+      value.DIGI = (this.formMITMAS.value.MMDIGI ?? '').toString().trim()
 
       return value;
    }
@@ -1438,18 +1502,11 @@ export class InterfaceOFComponent implements OnInit {
       } else {
          value.LEA1 = respItemWhs?.LEA1;
       }
-      let warehouseBal = "0";
       const objCtrlComp = this.formMITFAC.value.M9ACRF;
-      if (this.respWarehouseBalance.length > 0 && !this.respWarehouseBalance[0].error) {
-         warehouseBal = this.respWarehouseBalance[0]?.STQT;
-      }
+
       const itty = this.formMITFAC.value.MMITTY;
 
-      if ((itty == "G00" || itty == "H00" || itty == "I00") && (Number(warehouseBal) != 0)) {
-         value.SPMT = "4";
-         value.ALMT = "6";
-      }
-      else if (itty == "G00" || itty == "H00" || itty == "I00") {
+      if (itty == "G00" || itty == "H00" || itty == "I00") {
          value.SPMT = "4";
          value.ALMT = "2";
       } else if (itty == "A00" && objCtrlComp == "ITA01") {
@@ -1477,8 +1534,6 @@ export class InterfaceOFComponent implements OnInit {
       value.CSNO = this.formMITMAS.value.M9CSNO;
       value.ORCO = this.formMITMAS.value.M9ORCO;
       value.VAMT = this.formMITFAC.value.M9VAMT?.toString();
-      value.VTCP = this.formMITFAC.value.MMVTCP?.toString();
-
       return value;
    }
    async valueMITVEN(): Promise<any> {
@@ -1521,10 +1576,10 @@ export class InterfaceOFComponent implements OnInit {
    }
    async launchENS025(org: string, contri: string, item: string) {
       const today = new Date();
-      const year = today.getFullYear();
-      const month = String(today.getMonth() + 1).padStart(2, '0');
       const day = String(today.getDate()).padStart(2, '0');
-      const yyyyMMdd = `${year}${month}${day}`;
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const year = String(today.getFullYear()).slice(-2);
+      const ddMMyy = `${day}${month}${year}`;
 
       let xmlTemplate = `<?xml version="1.0" encoding="utf-8"?>
       <sequence>
@@ -1540,7 +1595,7 @@ export class InterfaceOFComponent implements OnInit {
           <step command="LSTOPT" value="-1" />
           <step command="AUTOSET">
               <field name="WEVFDT">{{fromdate}}</field>
-              <field name="WEVTDT">20300101</field>
+              <field name="WEVTDT"></field>
           </step>
           <step command="KEY" value="ENTER" />
       </sequence>
@@ -1550,7 +1605,7 @@ export class InterfaceOFComponent implements OnInit {
          '{{org}}': org?.trim(),
          '{{contri}}': contri?.trim(),
          '{{item}}': item?.trim(),
-         '{{fromdate}}': yyyyMMdd,
+         '{{fromdate}}': ddMMyy,
       };
 
       Object.entries(replacements).forEach(([key, value]) => {

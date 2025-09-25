@@ -248,16 +248,37 @@
                      <span><span id="MBRESPSelectedValue" class="selectedItem"></span></span>
                   </tr>
                   <tr>
-                     <td><label for="MBBUYE">{{ lang.get('MITBAL_FIELD_LABELS').MBBUYE }}</label></td>
-                     <td><input type="text" id="MBBUYE" name="MBBUYE" formControlName="MBBUYE" class="lookup"
-                           maxlength="10" /></td>
-                     <span><span id="MBBUYESelectedValue" class="selectedItem"></span></span>
+                     <td>
+                        <label for="MBBUYE">
+                           {{ this.puit == "1"
+                           ? lang.get('MITBAL_FIELD_LABELS').MBBUYEOF
+                           : lang.get('MITBAL_FIELD_LABELS').MBBUYE }}
+                        </label>
+                     </td>
+                     <td>
+                        <input type="text" id="MBBUYE" name="MBBUYE" formControlName="MBBUYE" class="lookup"
+                           maxlength="10" />
+                     </td>
+                     <span>
+                        <span id="MBBUYESelectedValue" class="selectedItem"></span>
+                     </span>
                   </tr>
+
                   <tr>
-                     <td><label for="MBSUNO">{{ lang.get('MITBAL_FIELD_LABELS').MBSUNO }}</label></td>
-                     <td><input type="text" id="MBSUNO" name="MBSUNO" formControlName="MBSUNO" class="lookup"
-                           maxlength="10" /></td>
-                     <span><span id="MBSUNOSelectedValue" class="selectedItem"></span></span>
+                     <td>
+                        <label for="MBSUNO">
+                           {{ this.puit == "1"
+                           ? lang.get('MITBAL_FIELD_LABELS').MBSUNOOF
+                           : lang.get('MITBAL_FIELD_LABELS').MBSUNO }}
+                        </label>
+                     </td>
+                     <td>
+                        <input type="text" id="MBSUNO" name="MBSUNO" formControlName="MBSUNO" class="lookup"
+                           maxlength="10" />
+                     </td>
+                     <span>
+                        <span id="MBSUNOSelectedValue" class="selectedItem"></span>
+                     </span>
                   </tr>
                   <tr>
                      <td><label for="MMGRTS">{{ lang.get('MITBAL_FIELD_LABELS').MMGRTS }}</label></td>

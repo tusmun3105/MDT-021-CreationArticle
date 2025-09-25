@@ -7,6 +7,8 @@
   { "Program": "MMS200MI", "Transaction": "CpyItmWhs" },
   { "Program": "MMS200MI", "Transaction": "CpyItmFac" },
   { "Program": "MMS200MI", "Transaction": "UpdItmPrice" },
+  { "Program": "MMS200MI", "Transaction": "UpdItmWhs" },
+  { "Program": "MMS200MI", "Transaction": "UpdItmFac" },
   { "Program": "CUSEXTMI", "Transaction": "AddFieldValue" },
   { "Program": "CUSEXTMI", "Transaction": "ChgFieldValue" },
   { "Program": "MMS030MI", "Transaction": "Add" },

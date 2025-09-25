@@ -23,13 +23,13 @@ export class SelectionReferenceComponent implements OnInit {
       // console.log("url", url);
       // const val = this.urlCheck(url);
       // console.log("val", val);
-      // const itno = "GB00015250";//val?.ITNO?.trim() || '';
-      // const whlo = "202";//val?.WHLO?.trim() || '';
+      // const itno = "30007377ZZ";//val?.ITNO?.trim() || '';
+      // const whlo = "201";//val?.WHLO?.trim() || '';
       // let panel = "MMA002BC"; //val?.PANEL?.trim() || '';
       // const faci = "200";//val?.FACI?.trim() || '';
       // const respITNO = await this.shared.call_MMS200_GetItem(itno);
 
-
+      console.log("Init Mashup MDT-021");
       console.log("url", url);
       const val = this.urlCheck(url);
       console.log("val", val);
@@ -88,11 +88,29 @@ export class SelectionReferenceComponent implements OnInit {
 
          if (stcd === '1') {
             const respGetItemWarehouse = await this.shared.call_MMS200_GetItmWhsBasic(whlo, itno);
-            if (respGetItemWarehouse.length === 0 || respGetItemWarehouse[0].error) return;
+
+            if (respGetItemWarehouse.length === 0 || respGetItemWarehouse[0].error) {
+               this.shared.displayErrorMessage(`${this.lang.get('ERROR_TYPE')['ERROR']}`, `${respGetItemWarehouse[0].errorMessage.errorMessage}`);
+               return;
+            }
 
             const puit = respGetItemWarehouse[0]?.PUIT;
-            const oplc = respGetItemWarehouse[0]?.OPLC;
             const plcd = respGetItemWarehouse[0]?.PLCD;
+
+            const itnoRef =
+               puit === "1" ? "T111000000" :
+                  puit === "2" ? "T112000000" :
+                     puit === "3" ? "T113000000" :
+                        "";
+
+            const respOPLCRef = await this.shared.call_MMS200_GetItmWhsBasic(whlo, itnoRef);
+            if (!respOPLCRef || respOPLCRef.length === 0 || respOPLCRef[0].error) {
+               this.shared.displayErrorMessage(`${this.lang.get('ERROR_TYPE')['ERROR']}`, `${respOPLCRef[0].errorMessage.errorMessage}`);
+               return;
+            }
+            this.shared.warehouseLocationRefModel = respOPLCRef[0]?.WHSL;
+            const oplc = respOPLCRef[0]?.OPLC;
+
 
             const route =
                puit === '1' ? '/component-OF'

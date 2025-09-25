@@ -7,7 +7,7 @@ import { MIService, UserService } from '@infor-up/m3-odin-angular';
 })
 export class SharedService {
    userContext = {} as IUserContext;
-
+   warehouseLocationRefModel = "";
    constructor(private miService: MIService, private userService: UserService,
    ) { }
 
@@ -189,6 +189,40 @@ export class SharedService {
          return [{ error: true, errorMessage: error }];
       }
    }
+   async call_MMS200_UpdItmWhsBasicLEA1(whlo: string, itno: string, lea1: string): Promise<any> {
+      try {
+         const inputRecord = new MIRecord();
+         inputRecord.setString('CONO', this.userContext.currentCompany?.trim());
+         inputRecord.setString('WHLO', whlo?.trim());
+         inputRecord.setString('ITNO', itno?.trim());
+         inputRecord.setString('LEA1', lea1?.trim());
+
+         const request: IMIRequest = {
+            program: 'MMS200MI',
+            transaction: 'UpdItmWhs',
+            record: inputRecord,
+            maxReturnedRecords: 0,
+            outputFields: []
+
+         };
+
+         const response: IMIResponse = await this.miService.execute(request).toPromise();
+
+         if (!response.hasError()) {
+            if (response.items.length > 0) {
+               const items = response.items;
+               return items;
+            } else {
+               return response.items;
+            }
+         } else {
+            return [{ error: true, errorMessage: response.errorMessage }];
+         }
+      } catch (error) {
+         console.error("Error:", error);
+         return [{ error: true, errorMessage: error }];
+      }
+   }
    async call_MMS200_GetItmFac(faci: string, itno: string): Promise<any> {
       try {
          const inputRecord = new MIRecord();
@@ -200,7 +234,7 @@ export class SharedService {
             transaction: 'GetItmFac',
             record: inputRecord,
             maxReturnedRecords: 0,
-            outputFields: ['ORCO', 'CSNO', 'ACRF', 'VAMT']
+            outputFields: ['ORCO', 'CSNO', 'ACRF', 'VAMT', 'ECCC']
 
          };
 
@@ -427,6 +461,48 @@ export class SharedService {
          inputRecord.setString('SEPC', ";");
          inputRecord.setString('HDRS', "0");
          inputRecord.setString('QERY', `CTSTKY, CTTX15, CTTX40 from CSYTAB where CTCONO = ${this.userContext.currentCompany} and CTSTCO = CUCD`);
+
+         const request: IMIRequest = {
+            program: 'EXPORTMI',
+            transaction: 'Select',
+            record: inputRecord,
+            maxReturnedRecords: 0,
+            outputFields: ['REPL']
+
+         };
+
+         const response: IMIResponse = await this.miService.execute(request).toPromise();
+
+         if (!response.hasError()) {
+            if (response.items.length > 0) {
+               const items = response.items;
+               return items.map(item => {
+                  const [CTSTKY, CTTX15, CTTX40] = (item.REPL || '').split(';');
+                  return {
+                     ...item,
+                     CUCD: CTSTKY || '',
+                     TX15: CTTX15 || '',
+                     TX40: CTTX40 || ''
+                  };
+               });
+               ;
+            } else {
+               return response.items;
+            }
+         } else {
+            return [{ error: true, errorMessage: response.errorMessage }];
+         }
+      } catch (error) {
+         console.error("Error:", error);
+         return [{ error: true, errorMessage: error }];
+      }
+   }
+   async call_EXPORT_LEA1(whlo: string, itno: string) {
+      try {
+         const inputRecord = new MIRecord();
+         inputRecord.setString('SEPC', ";");
+         inputRecord.setString('HDRS', "0");
+         inputRecord.setString('QERY', `MBLEA1 from MITBAL where MBCONO = ${this.userContext.currentCompany} and MBWHLO = ${whlo} and MBITNO = ${itno}`);
 
          const request: IMIRequest = {
             program: 'EXPORTMI',
@@ -862,7 +938,7 @@ export class SharedService {
          inputRecord.setString("WHLO", inputMitbal?.WHLO?.trim() || "");
          inputRecord.setString("ITNO", inputMitbal?.newITNO?.trim() || "");
          inputRecord.setString("CWHL", inputMitbal?.WHLO?.trim() || "");
-         inputRecord.setString("CITN", inputMitbal?.refITNO?.trim() || "");
+         inputRecord.setString("CITN", inputMitbal?.refModelArticle?.trim() || "");
 
          inputRecord.setString("RESP", inputMitbal?.RESP?.trim() || "");
          inputRecord.setString("BUYE", inputMitbal?.BUYE?.trim() || "");
@@ -901,24 +977,22 @@ export class SharedService {
          return [{ error: true, errorMessage: error }];
       }
    }
-   async call_MMS200_CpyItmFacOF_Client(inputMitbal: any, inputMitfac: any): Promise<any> {
+   async call_MMS200_UpdItmFacOF_Client(inputMitbal: any, inputMitfac: any): Promise<any> {
       try {
          const inputRecord = new MIRecord();
          inputRecord.setString("CONO", this.userContext.currentCompany);
          inputRecord.setString("FACI", inputMitbal?.FACI?.trim() || "");
          inputRecord.setString("ITNO", inputMitbal?.newITNO?.trim() || "");
-         inputRecord.setString("CFAC", inputMitbal?.FACI?.trim() || "");
-         inputRecord.setString("CITN", inputMitbal?.refModelArticle?.trim() || "");
 
          inputRecord.setString("ACRF", inputMitfac?.ACRF?.trim() || "");
          inputRecord.setString("CSNO", inputMitfac?.CSNO?.trim() || "");
          inputRecord.setString("ORCO", inputMitfac?.ORCO?.trim() || "");
          inputRecord.setString("VAMT", inputMitfac?.VAMT?.trim() || "");
-         inputRecord.setString("VTCP", inputMitfac?.VTCP?.trim() || "");
+         inputRecord.setString("ECCC", inputMitfac?.ECCC?.trim() || "");
 
          const request: IMIRequest = {
             program: "MMS200MI",
-            transaction: "CpyItmFac",
+            transaction: "UpdItmFac",
             record: inputRecord,
             maxReturnedRecords: 0,
             outputFields: [],
@@ -978,6 +1052,7 @@ export class SharedService {
          inputRecord.setString("VTCS", input.VTCS);
          inputRecord.setString("CPUN", input.CPUN);
          inputRecord.setString("DWNO", input.DWNO);
+         inputRecord.setString("ITGR", input.ITGR);
          inputRecord.setString("HIE1", input.HIE1);//
          inputRecord.setString("HIE2", input.HIE2);//
          inputRecord.setString("HIE3", input.HIE3);//
@@ -1384,7 +1459,7 @@ export class SharedService {
 
 
          const request: IMIRequest = {
-            program: 'PPS040',
+            program: 'PPS040MI',
             transaction: 'AddItemSupplier',
             record: inputRecord,
             maxReturnedRecords: 0,
@@ -1768,12 +1843,21 @@ export class SharedService {
          return [{ error: true, errorMessage: error }];
       }
    }
-   async call_PPS095_LstOrderType(cono: string) {
+   async call_LstOrderType(cono: string, puit: string) {
       try {
          const inputRecord = new MIRecord();
          inputRecord.setString('SEPC', ";");
          inputRecord.setString('HDRS', "0");
-         inputRecord.setString('QERY', `OTORTY, OTTX15, OTTX40 from MPORDT where OTCONO = ${this.userContext.currentCompany}`);
+         if (puit == "1") {
+            inputRecord.setString('QERY', `VTORTY, VTTX15, VTTX40 from MWORDT where VTCONO = ${this.userContext.currentCompany}`);
+         }
+         else if (puit == "2") {
+            inputRecord.setString('QERY', `OTORTY, OTTX15, OTTX40 from MPORDT where OTCONO = ${this.userContext.currentCompany}`);
+
+         }
+         else {
+            inputRecord.setString('QERY', `YXTRTP, YXTX40 from MGTYPE where YXCONO = ${this.userContext.currentCompany}`);
+         }
 
          const request: IMIRequest = {
             program: 'EXPORTMI',
@@ -1875,7 +1959,7 @@ export class SharedService {
          return [];
       }
    }
-   async call_MMS200_GetItmDIGI_ACRF_(qery: string): Promise<any> {
+   async call_MMS200_GetItmDIGI_ACRF(qery: string): Promise<any> {
       try {
          const inputRecord = new MIRecord();
          inputRecord.setString('SEPC', ";");

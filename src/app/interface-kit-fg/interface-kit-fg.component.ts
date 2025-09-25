@@ -139,7 +139,7 @@ export class InterfaceKITFGComponent implements OnInit {
       const [respItemBasic, respCugex, respMM200DIGI_ACRF, respFACI, respMMS030List] = await Promise.all([
          this.shared.call_MMS200_GetItem(window.history.state.ITNOREF),
          this.shared.call_CUSEXT_GetFieldValue("MITMAS", window.history.state.ITNOREF),
-         this.shared.call_MMS200_GetItmDIGI_ACRF_(`MMDIGI, MMACRF from MITMAS where MMITNO = ${window.history.state.ITNOREF}`),
+         this.shared.call_MMS200_GetItmDIGI_ACRF(`MMDIGI, MMACRF from MITMAS where MMITNO = ${window.history.state.ITNOREF}`),
          this.shared.call_MMS200_GetItmFac(window.history.state.FACI, window.history.state.ITNOREF),
          this.shared.call_MMS030_List(window.history.state.ITNOREF)
       ]);
@@ -442,7 +442,11 @@ export class InterfaceKITFGComponent implements OnInit {
             MMITNO: (this.formMITMAS.value.MMITNO ?? '').toString().trim()?.toUpperCase(),
             MMSTAT: (this.formMITMAS.value.MMSTAT ?? '').toString().trim(),
             MMITDS: (this.formMITMAS.value.MMITDS ?? '').toString().trim(),
-            MMFUDS: (this.formMITMAS.value.MMFUDS ?? '').toString().trim(),
+            MMFUDS: (() => {
+               const itds = (this.formMITMAS.value.MMITDS ?? '').toString().trim();
+               const fuds = (this.formMITMAS.value.MMFUDS ?? '').toString().trim();
+               return !fuds && itds ? itds : fuds;
+            })(),
             MMPRGP: (this.formMITMAS.value.MMPRGP ?? '').toString().trim(),
             MMGRWE: (this.formMITMAS.value.MMGRWE ?? '').toString().trim(),
             MMCFI3: (this.formMITMAS.value.MMCFI3 ?? '').toString().trim(),
@@ -453,23 +457,55 @@ export class InterfaceKITFGComponent implements OnInit {
             DELPIC: (this.formCUGEX.value.DELPIC ?? '').toString().trim(),
             DELGAM: (this.formCUGEX.value.DELGAM ?? '').toString().trim(),
             M9ACRF: (this.formMITFAC.value.M9ACRF ?? '').toString().trim(),
+
             LMCD_GB_ITDS: (this.formMITLAD.value.LMCD_GB_ITDS ?? '').toString().trim(),
-            LMCD_GB_FUDS: (this.formMITLAD.value.LMCD_GB_FUDS ?? '').toString().trim(),
+            LMCD_GB_FUDS: (() => {
+               const itds = (this.formMITLAD.value.LMCD_GB_ITDS ?? '').toString().trim();
+               const fuds = (this.formMITLAD.value.LMCD_GB_FUDS ?? '').toString().trim();
+               return !fuds && itds ? itds : fuds;
+            })(),
             LMCD_DE_ITDS: (this.formMITLAD.value.LMCD_DE_ITDS ?? '').toString().trim(),
-            LMCD_DE_FUDS: (this.formMITLAD.value.LMCD_DE_FUDS ?? '').toString().trim(),
+            LMCD_DE_FUDS: (() => {
+               const itds = (this.formMITLAD.value.LMCD_DE_ITDS ?? '').toString().trim();
+               const fuds = (this.formMITLAD.value.LMCD_DE_FUDS ?? '').toString().trim();
+               return !fuds && itds ? itds : fuds;
+            })(),
             LMCD_PL_ITDS: (this.formMITLAD.value.LMCD_PL_ITDS ?? '').toString().trim(),
-            LMCD_PL_FUDS: (this.formMITLAD.value.LMCD_PL_FUDS ?? '').toString().trim(),
+            LMCD_PL_FUDS: (() => {
+               const itds = (this.formMITLAD.value.LMCD_PL_ITDS ?? '').toString().trim();
+               const fuds = (this.formMITLAD.value.LMCD_PL_FUDS ?? '').toString().trim();
+               return !fuds && itds ? itds : fuds;
+            })(),
             LMCD_NL_ITDS: (this.formMITLAD.value.LMCD_NL_ITDS ?? '').toString().trim(),
-            LMCD_NL_FUDS: (this.formMITLAD.value.LMCD_NL_FUDS ?? '').toString().trim(),
+            LMCD_NL_FUDS: (() => {
+               const itds = (this.formMITLAD.value.LMCD_NL_ITDS ?? '').toString().trim();
+               const fuds = (this.formMITLAD.value.LMCD_NL_FUDS ?? '').toString().trim();
+               return !fuds && itds ? itds : fuds;
+            })(),
             LMCD_PT_ITDS: (this.formMITLAD.value.LMCD_PT_ITDS ?? '').toString().trim(),
-            LMCD_PT_FUDS: (this.formMITLAD.value.LMCD_PT_FUDS ?? '').toString().trim(),
+            LMCD_PT_FUDS: (() => {
+               const itds = (this.formMITLAD.value.LMCD_PT_ITDS ?? '').toString().trim();
+               const fuds = (this.formMITLAD.value.LMCD_PT_FUDS ?? '').toString().trim();
+               return !fuds && itds ? itds : fuds;
+            })(),
             LMCD_ES_ITDS: (this.formMITLAD.value.LMCD_ES_ITDS ?? '').toString().trim(),
-            LMCD_ES_FUDS: (this.formMITLAD.value.LMCD_ES_FUDS ?? '').toString().trim(),
+            LMCD_ES_FUDS: (() => {
+               const itds = (this.formMITLAD.value.LMCD_ES_ITDS ?? '').toString().trim();
+               const fuds = (this.formMITLAD.value.LMCD_ES_FUDS ?? '').toString().trim();
+               return !fuds && itds ? itds : fuds;
+            })(),
             LMCD_FR_ITDS: (this.formMITLAD.value.LMCD_FR_ITDS ?? '').toString().trim(),
-            LMCD_FR_FUDS: (this.formMITLAD.value.LMCD_FR_FUDS ?? '').toString().trim(),
+            LMCD_FR_FUDS: (() => {
+               const itds = (this.formMITLAD.value.LMCD_FR_ITDS ?? '').toString().trim();
+               const fuds = (this.formMITLAD.value.LMCD_FR_FUDS ?? '').toString().trim();
+               return !fuds && itds ? itds : fuds;
+            })(),
+
             POP1: (this.formMITPOP.value.POP1 ?? '').toString().trim(),
             POP2: (this.formMITPOP.value.POP2 ?? '').toString().trim(),
          };
+
+
          const item = this.respItemBasicSelectedItem as any;
          const refItem = "T100200000";
          const cpyItem = window.history.state.ITNOREF || "";
@@ -511,7 +547,7 @@ export class InterfaceKITFGComponent implements OnInit {
             stun: item?.UNMS || "",
             spun: item?.UNMS || "",
             alun: item?.UNMS || "",
-            vtcp: values?.MMITTY === "J00" ? "?" : values?.MMVTCP ?? "",
+            vtcp: values?.MMITTY === "J00" ? "00" : values?.MMVTCP ?? "00",
             vtcs: item?.SALE === "1" ? "1" : "",
             chid: this.shared.userContext.USID,
             cpun: item?.UNMS || "",
@@ -617,7 +653,11 @@ export class InterfaceKITFGComponent implements OnInit {
             MMITNO: (this.formMITMAS.value.MMITNO ?? '').toString().trim()?.toUpperCase(),
             MMSTAT: (this.formMITMAS.value.MMSTAT ?? '').toString().trim(),
             MMITDS: (this.formMITMAS.value.MMITDS ?? '').toString().trim(),
-            MMFUDS: (this.formMITMAS.value.MMFUDS ?? '').toString().trim(),
+            MMFUDS: (() => {
+               const itds = (this.formMITMAS.value.MMITDS ?? '').toString().trim();
+               const fuds = (this.formMITMAS.value.MMFUDS ?? '').toString().trim();
+               return !fuds && itds ? itds : fuds;
+            })(),
             MMPRGP: (this.formMITMAS.value.MMPRGP ?? '').toString().trim(),
             MMGRWE: (this.formMITMAS.value.MMGRWE ?? '').toString().trim(),
             MMCFI3: (this.formMITMAS.value.MMCFI3 ?? '').toString().trim(),
@@ -633,19 +673,47 @@ export class InterfaceKITFGComponent implements OnInit {
             M9ACRF: (this.formMITFAC.value.M9ACRF ?? '').toString().trim(),
 
             LMCD_GB_ITDS: (this.formMITLAD.value.LMCD_GB_ITDS ?? '').toString().trim(),
-            LMCD_GB_FUDS: (this.formMITLAD.value.LMCD_GB_FUDS ?? '').toString().trim(),
+            LMCD_GB_FUDS: (() => {
+               const itds = (this.formMITLAD.value.LMCD_GB_ITDS ?? '').toString().trim();
+               const fuds = (this.formMITLAD.value.LMCD_GB_FUDS ?? '').toString().trim();
+               return !fuds && itds ? itds : fuds;
+            })(),
             LMCD_DE_ITDS: (this.formMITLAD.value.LMCD_DE_ITDS ?? '').toString().trim(),
-            LMCD_DE_FUDS: (this.formMITLAD.value.LMCD_DE_FUDS ?? '').toString().trim(),
+            LMCD_DE_FUDS: (() => {
+               const itds = (this.formMITLAD.value.LMCD_DE_ITDS ?? '').toString().trim();
+               const fuds = (this.formMITLAD.value.LMCD_DE_FUDS ?? '').toString().trim();
+               return !fuds && itds ? itds : fuds;
+            })(),
             LMCD_PL_ITDS: (this.formMITLAD.value.LMCD_PL_ITDS ?? '').toString().trim(),
-            LMCD_PL_FUDS: (this.formMITLAD.value.LMCD_PL_FUDS ?? '').toString().trim(),
+            LMCD_PL_FUDS: (() => {
+               const itds = (this.formMITLAD.value.LMCD_PL_ITDS ?? '').toString().trim();
+               const fuds = (this.formMITLAD.value.LMCD_PL_FUDS ?? '').toString().trim();
+               return !fuds && itds ? itds : fuds;
+            })(),
             LMCD_NL_ITDS: (this.formMITLAD.value.LMCD_NL_ITDS ?? '').toString().trim(),
-            LMCD_NL_FUDS: (this.formMITLAD.value.LMCD_NL_FUDS ?? '').toString().trim(),
+            LMCD_NL_FUDS: (() => {
+               const itds = (this.formMITLAD.value.LMCD_NL_ITDS ?? '').toString().trim();
+               const fuds = (this.formMITLAD.value.LMCD_NL_FUDS ?? '').toString().trim();
+               return !fuds && itds ? itds : fuds;
+            })(),
             LMCD_PT_ITDS: (this.formMITLAD.value.LMCD_PT_ITDS ?? '').toString().trim(),
-            LMCD_PT_FUDS: (this.formMITLAD.value.LMCD_PT_FUDS ?? '').toString().trim(),
+            LMCD_PT_FUDS: (() => {
+               const itds = (this.formMITLAD.value.LMCD_PT_ITDS ?? '').toString().trim();
+               const fuds = (this.formMITLAD.value.LMCD_PT_FUDS ?? '').toString().trim();
+               return !fuds && itds ? itds : fuds;
+            })(),
             LMCD_ES_ITDS: (this.formMITLAD.value.LMCD_ES_ITDS ?? '').toString().trim(),
-            LMCD_ES_FUDS: (this.formMITLAD.value.LMCD_ES_FUDS ?? '').toString().trim(),
+            LMCD_ES_FUDS: (() => {
+               const itds = (this.formMITLAD.value.LMCD_ES_ITDS ?? '').toString().trim();
+               const fuds = (this.formMITLAD.value.LMCD_ES_FUDS ?? '').toString().trim();
+               return !fuds && itds ? itds : fuds;
+            })(),
             LMCD_FR_ITDS: (this.formMITLAD.value.LMCD_FR_ITDS ?? '').toString().trim(),
-            LMCD_FR_FUDS: (this.formMITLAD.value.LMCD_FR_FUDS ?? '').toString().trim(),
+            LMCD_FR_FUDS: (() => {
+               const itds = (this.formMITLAD.value.LMCD_FR_ITDS ?? '').toString().trim();
+               const fuds = (this.formMITLAD.value.LMCD_FR_FUDS ?? '').toString().trim();
+               return !fuds && itds ? itds : fuds;
+            })(),
 
             POP1: (this.formMITPOP.value.POP1 ?? '').toString().trim(),
             POP2: (this.formMITPOP.value.POP2 ?? '').toString().trim(),
