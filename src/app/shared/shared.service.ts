@@ -1022,6 +1022,7 @@ export class SharedService {
          inputRecord.setString("VAMT", inputMitfac?.VAMT?.trim() || "");
          inputRecord.setString("REWH", inputMitfac?.REWH?.trim() || "");
          inputRecord.setString("ECCC", inputMitfac?.ECCC?.trim() || "");
+         inputRecord.setString("WCLN", inputMitfac?.WCLN?.trim() || "");
 
          const request: IMIRequest = {
             program: "MMS200MI",
