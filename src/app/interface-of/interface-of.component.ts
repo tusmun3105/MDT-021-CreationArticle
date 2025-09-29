@@ -713,32 +713,63 @@ export class InterfaceOFComponent implements OnInit {
                   dcon
                );
 
+               // ************************     PDS002     ************************ \\
                this.PDS002 = true;
+               if (this.formMITBAL.value.CREATELINE) {
+                  this.PDS002 = true;
 
-               const respListCompoPDS002 = await this.shared.call_PDS002_LstComponent(
-                  valueMITBAL?.FACI?.trim(),
-                  window.history.state?.ITNOREF,
-                  "STD"
-               );
-
-               const respLstOperationPDS002 = await this.shared.call_PDS002_LstOperation(
-                  valueMITBAL?.FACI?.trim(),
-                  window.history.state?.ITNOREF,
-                  "STD"
-               );
-
-               if (respListCompoPDS002.length > 0 && !respListCompoPDS002[0].error) {
-                  await Promise.all(
-                     respListCompoPDS002.map(item => this.shared.call_PDS002_CreateComponent(item))
+                  const respListCompoPDS002 = await this.shared.call_PDS002_LstComponent(
+                     valueMITBAL?.FACI?.trim(),
+                     window.history.state?.ITNOREF,
+                     "STD"
                   );
-               }
 
-               if (respLstOperationPDS002.length > 0 && !respLstOperationPDS002[0].error) {
-                  await Promise.all(
-                     respLstOperationPDS002.map(item => this.shared.call_PDS002_CreateOperation(item))
+                  const respLstOperationPDS002 = await this.shared.call_PDS002_LstOperation(
+                     valueMITBAL?.FACI?.trim(),
+                     window.history.state?.ITNOREF,
+                     "STD"
                   );
-               }
 
+                  if (respListCompoPDS002.length > 0 && !respListCompoPDS002[0].error) {
+                     await Promise.all(
+                        respListCompoPDS002.map(item => this.shared.call_PDS002_CreateComponent(item))
+                     );
+                  }
+
+                  if (respLstOperationPDS002.length > 0 && !respLstOperationPDS002[0].error) {
+                     await Promise.all(
+                        respLstOperationPDS002.map(item => this.shared.call_PDS002_CreateOperation(item))
+                     );
+                  }
+
+               } else {
+                  // ************************     PDS002 -Delete Mats & Ops   ************************ \\
+                  this.PDS002 = true;
+
+                  const respListCompoPDS002 = await this.shared.call_PDS002_LstComponent(
+                     valueMITBAL?.FACI?.trim(),
+                     window.history.state?.ITNOREF,
+                     "STD"
+                  );
+
+                  const respLstOperationPDS002 = await this.shared.call_PDS002_LstOperation(
+                     valueMITBAL?.FACI?.trim(),
+                     window.history.state?.ITNOREF,
+                     "STD"
+                  );
+
+                  if (respListCompoPDS002.length > 0 && !respListCompoPDS002[0].error) {
+                     await Promise.all(
+                        respListCompoPDS002.map(item => this.shared.call_PDS002_DeleteCompoNOperation(item))
+                     );
+                  }
+
+                  if (respLstOperationPDS002.length > 0 && !respLstOperationPDS002[0].error) {
+                     await Promise.all(
+                        respLstOperationPDS002.map(item => this.shared.call_PDS002_DeleteCompoNOperation(item))
+                     );
+                  }
+               }
                this.iconPDS002 = "#icon-success";
             }
             else {
