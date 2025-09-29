@@ -699,7 +699,7 @@ export class InterfaceOFComponent implements OnInit {
             await this.launchPDS001Copy(valueMITBAL?.FACI?.trim(), valueMITBAL?.refModelArticle, "STD", valueMITBAL?.newITNO?.trim());
             await new Promise(resolve => setTimeout(resolve, 2500));
             const respCheckPDS001 = await this.shared.call_PDS001_GetProductStructure(valueMITBAL?.FACI?.trim(), valueMITBAL?.newITNO?.trim(), "STD");
-            if (respCheckPDS001 > 0 && !respCheckPDS001[0].error) {
+            if (respCheckPDS001.length > 0 && !respCheckPDS001[0].error) {
                this.iconPDS001 = "#icon-success";
                const dcon = value?.CHCD === "1" ? "1" : "0";
 

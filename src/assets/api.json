@@ -20,6 +20,7 @@
   { "Program": "PDS002MI", "Transaction": "LstOperation" },
   { "Program": "PDS002MI", "Transaction": "AddComponent" },
   { "Program": "PDS002MI", "Transaction": "AddOperation" },
+  { "Program": "PDS002MI", "Transaction": "Delete" },
   { "Program": "PPS040", "Transaction": "AddItemSupplier" },
   { "Program": "MMS059MI", "Transaction": "List" },
   { "Program": "MMS059MI", "Transaction": "Add" }
