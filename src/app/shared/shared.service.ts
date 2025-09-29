@@ -1450,18 +1450,14 @@ export class SharedService {
    async call_PDS002_CreateComponent(input: any): Promise<any> {
       try {
          const inputRecord = new MIRecord();
-
          inputRecord.setString('CONO', this.userContext.currentCompany);
 
-         if (Array.isArray(input) && input.length > 0) {
-            const record = input[0];
-            Object.keys(record).forEach((key) => {
-               const value = record[key];
-               if (value !== undefined && value !== null) {
-                  inputRecord.setString(key, String(value).trim());
-               }
-            });
-         }
+         Object.keys(input).forEach(key => {
+            const value = input[key];
+            if (value !== undefined && value !== null) {
+               inputRecord.setString(key, String(value).trim());
+            }
+         });
 
          const request: IMIRequest = {
             program: 'PDS002MI',
@@ -1472,32 +1468,24 @@ export class SharedService {
          };
 
          const response: IMIResponse = await this.miService.execute(request).toPromise();
-
-         if (!response.hasError()) {
-            return response.items.length > 0 ? response.items : [];
-         } else {
-            return [{ error: true, errorMessage: response.errorMessage }];
-         }
+         return !response.hasError() ? (response.items.length > 0 ? response.items : []) : [{ error: true, errorMessage: response.errorMessage }];
       } catch (error) {
          console.error("Error:", error);
          return [{ error: true, errorMessage: error }];
       }
    }
+
    async call_PDS002_DeleteCompoNOperation(input: any): Promise<any> {
       try {
          const inputRecord = new MIRecord();
-
          inputRecord.setString('CONO', this.userContext.currentCompany);
 
-         if (Array.isArray(input) && input.length > 0) {
-            const record = input[0];
-            Object.keys(record).forEach((key) => {
-               const value = record[key];
-               if (value !== undefined && value !== null) {
-                  inputRecord.setString(key, String(value).trim());
-               }
-            });
-         }
+         Object.keys(input).forEach(key => {
+            const value = input[key];
+            if (value !== undefined && value !== null) {
+               inputRecord.setString(key, String(value).trim());
+            }
+         });
 
          const request: IMIRequest = {
             program: 'PDS002MI',
@@ -1508,32 +1496,24 @@ export class SharedService {
          };
 
          const response: IMIResponse = await this.miService.execute(request).toPromise();
-
-         if (!response.hasError()) {
-            return response.items.length > 0 ? response.items : [];
-         } else {
-            return [{ error: true, errorMessage: response.errorMessage }];
-         }
+         return !response.hasError() ? (response.items.length > 0 ? response.items : []) : [{ error: true, errorMessage: response.errorMessage }];
       } catch (error) {
          console.error("Error:", error);
          return [{ error: true, errorMessage: error }];
       }
    }
+
    async call_PDS002_CreateOperation(input: any): Promise<any> {
       try {
          const inputRecord = new MIRecord();
-
          inputRecord.setString('CONO', this.userContext.currentCompany);
 
-         if (Array.isArray(input) && input.length > 0) {
-            const record = input[0];
-            Object.keys(record).forEach((key) => {
-               const value = record[key];
-               if (value !== undefined && value !== null) {
-                  inputRecord.setString(key, String(value).trim());
-               }
-            });
-         }
+         Object.keys(input).forEach(key => {
+            const value = input[key];
+            if (value !== undefined && value !== null) {
+               inputRecord.setString(key, String(value).trim());
+            }
+         });
 
          const request: IMIRequest = {
             program: 'PDS002MI',
@@ -1544,47 +1524,13 @@ export class SharedService {
          };
 
          const response: IMIResponse = await this.miService.execute(request).toPromise();
-
-         if (!response.hasError()) {
-            return response.items.length > 0 ? response.items : [];
-         } else {
-            return [{ error: true, errorMessage: response.errorMessage }];
-         }
+         return !response.hasError() ? (response.items.length > 0 ? response.items : []) : [{ error: true, errorMessage: response.errorMessage }];
       } catch (error) {
          console.error("Error:", error);
          return [{ error: true, errorMessage: error }];
       }
    }
-   async call_PDS002_Delete(faci: string, prno: string, strt: string, mseq: string): Promise<any> {
-      try {
-         const inputRecord = new MIRecord();
 
-         inputRecord.setString('CONO', this.userContext.currentCompany);
-         inputRecord.setString('FACI', faci);
-         inputRecord.setString('PRNO', prno);
-         inputRecord.setString('STRT', strt);
-         inputRecord.setString('MSEQ', mseq);
-
-         const request: IMIRequest = {
-            program: 'PDS002MI',
-            transaction: 'Delete',
-            record: inputRecord,
-            maxReturnedRecords: 0,
-            outputFields: []
-         };
-
-         const response: IMIResponse = await this.miService.execute(request).toPromise();
-
-         if (!response.hasError()) {
-            return response.items.length > 0 ? response.items : response.items;
-         } else {
-            return [{ error: true, errorMessage: response.errorMessage }];
-         }
-      } catch (error) {
-         console.error("Error:", error);
-         return [{ error: true, errorMessage: error }];
-      }
-   }
    async call_PPS040_AddItemSupplier(itno: string, suno: string): Promise<any> {
       try {
          const inputRecord = new MIRecord();
