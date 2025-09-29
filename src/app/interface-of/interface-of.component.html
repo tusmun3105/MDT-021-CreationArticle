@@ -358,9 +358,12 @@
 
                   <tr>
                      <td><label for="IFCUCD">{{ lang.get('MITVEN_FIELD_LABELS').IFCUCD }}</label></td>
-                     <td><input type="text" id="IFCUCD" name="IFCUCD" formControlName="IFCUCD" class="lookup"
-                           maxlength="3" /></td>
+                     <td>
+                        <input type="text" id="IFCUCD" name="IFCUCD" formControlName="IFCUCD" class="lookup"
+                           maxlength="3" readonly />
+                     </td>
                   </tr>
+
                   <tr>
                      <td> <label for="IFUVDT" class="label">{{ lang.get('MITVEN_FIELD_LABELS').IFUVDT }}</label></td>
                      <td><input type="text" id="IFUVDT" class="datepicker" name="IFUVDT" formControlName="IFUVDT"

@@ -22,7 +22,9 @@ export class AppComponent extends CoreBase implements OnInit {
 
    constructor(private miService: MIService, private userService: UserService, public lang: LanguageService, private shared: SharedService) {
       super('AppComponent');
-      this.lang.load(this.shared.userContext?.currentLanguage);
+      const userLang = this.shared.userContext?.currentLanguage;
+      const langToLoad = (userLang === 'FR' || userLang === 'GB') ? userLang : 'FR';
+      this.lang.load(langToLoad);
    }
 
    ngOnInit() {

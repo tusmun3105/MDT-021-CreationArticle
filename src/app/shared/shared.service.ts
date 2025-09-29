@@ -18,7 +18,6 @@ export class SharedService {
             this.userService.getUserContext().subscribe(
                (userContext: IUserContext) => {
                   this.userContext = userContext;
-                  console.log("userContext", userContext)
                   resolve(userContext);
                },
                (errorContext: IUserContext) => {
@@ -71,6 +70,39 @@ export class SharedService {
          const request: IMIRequest = {
             program: 'MMS005MI',
             transaction: 'GetWarehouse',
+            record: inputRecord,
+            maxReturnedRecords: 0,
+            outputFields: []
+
+         };
+
+         const response: IMIResponse = await this.miService.execute(request).toPromise();
+
+         if (!response.hasError()) {
+            if (response.items.length > 0) {
+               const items = response.items;
+               return items;
+            } else {
+               return response.items;
+            }
+         } else {
+            return [{ error: true, errorMessage: response.errorMessage }];
+         }
+      } catch (error) {
+         console.error("Error:", error);
+         return [{ error: true, errorMessage: error }];
+      }
+   }
+   async call_PDS001_GetProductStructure(faci: string, prno: string, strt: string): Promise<any> {
+      try {
+         const inputRecord = new MIRecord();
+         inputRecord.setString('FACI', faci?.trim());
+         inputRecord.setString('PRNO', prno?.trim());
+         inputRecord.setString('STRT', strt?.trim());
+
+         const request: IMIRequest = {
+            program: 'PDS001MI',
+            transaction: 'Get',
             record: inputRecord,
             maxReturnedRecords: 0,
             outputFields: []
@@ -988,6 +1020,7 @@ export class SharedService {
          inputRecord.setString("CSNO", inputMitfac?.CSNO?.trim() || "");
          inputRecord.setString("ORCO", inputMitfac?.ORCO?.trim() || "");
          inputRecord.setString("VAMT", inputMitfac?.VAMT?.trim() || "");
+         inputRecord.setString("REWH", inputMitfac?.REWH?.trim() || "");
          inputRecord.setString("ECCC", inputMitfac?.ECCC?.trim() || "");
 
          const request: IMIRequest = {
@@ -1058,6 +1091,9 @@ export class SharedService {
          inputRecord.setString("HIE3", input.HIE3);//
          inputRecord.setString("INDI", input.INDI);//
          inputRecord.setString("BACD", input.BACD);//
+         inputRecord.setString("ILEN", input.ILEN);
+         inputRecord.setString("IWID", input.IWID);
+
          const request: IMIRequest = {
             program: "MMS200MI",
             transaction: "CpyItmBasic",
@@ -1315,37 +1351,8 @@ export class SharedService {
          return [{ error: true, errorMessage: error }];
       }
    }
-   async call_PDS001_CPY(fromFaci: string, toFaci: string, fromProduct: string, toProduct: string, strt: string): Promise<any> {
-      try {
-         const inputRecord = new MIRecord();
-         inputRecord.setString('CONO', this.userContext.currentCompany);
-         inputRecord.setString('FACI', fromFaci?.trim() || '');
-         inputRecord.setString('PRNO', fromProduct?.trim() || '');
-         inputRecord.setString('CFAC', toFaci?.trim() || '');
-         inputRecord.setString('CPRN', toProduct?.trim() || '');
-         inputRecord.setString('STRT', strt);
-         inputRecord.setString('CSTR', strt);
 
-         const request: IMIRequest = {
-            program: 'PDS001MI',
-            transaction: 'CpyProdVersion',
-            record: inputRecord,
-            maxReturnedRecords: 0,
-            outputFields: []
-         };
 
-         const response: IMIResponse = await this.miService.execute(request).toPromise();
-
-         if (!response.hasError()) {
-            return response.items.length > 0 ? response.items : response.items;
-         } else {
-            return [{ error: true, errorMessage: response.errorMessage }];
-         }
-      } catch (error) {
-         console.error("Error:", error);
-         return [{ error: true, errorMessage: error }];
-      }
-   }
    async call_PDS001_Update(faci: string, prno: string, stat: string, strt: string, resp: string, dwno: string, dcon: string): Promise<any> {
       try {
          const inputRecord = new MIRecord();
@@ -1410,7 +1417,7 @@ export class SharedService {
          return [{ error: true, errorMessage: error }];
       }
    }
-   async call_PDS002_Delete(faci: string, prno: string, strt: string, mseq: string): Promise<any> {
+   async call_PDS002_LstOperation(faci: string, prno: string, strt: string): Promise<any> {
       try {
          const inputRecord = new MIRecord();
 
@@ -1418,11 +1425,11 @@ export class SharedService {
          inputRecord.setString('FACI', faci);
          inputRecord.setString('PRNO', prno);
          inputRecord.setString('STRT', strt);
-         inputRecord.setString('MSEQ', mseq);
+
 
          const request: IMIRequest = {
             program: 'PDS002MI',
-            transaction: 'Delete',
+            transaction: 'LstOperation',
             record: inputRecord,
             maxReturnedRecords: 0,
             outputFields: []
@@ -1440,27 +1447,158 @@ export class SharedService {
          return [{ error: true, errorMessage: error }];
       }
    }
-   async call_PPS040_AddItemSupplier(itno: string, suno: string, rtyp: string, isrs: string, orco: string, site: string, sitt: string, pupr: string, pucd: string, uvdt: string): Promise<any> {
+   async call_PDS002_CreateComponent(input: any): Promise<any> {
+      try {
+         const inputRecord = new MIRecord();
+
+         inputRecord.setString('CONO', this.userContext.currentCompany);
+
+         if (Array.isArray(input) && input.length > 0) {
+            const record = input[0];
+            Object.keys(record).forEach((key) => {
+               const value = record[key];
+               if (value !== undefined && value !== null) {
+                  inputRecord.setString(key, String(value).trim());
+               }
+            });
+         }
+
+         const request: IMIRequest = {
+            program: 'PDS002MI',
+            transaction: 'AddComponent',
+            record: inputRecord,
+            maxReturnedRecords: 0,
+            outputFields: []
+         };
+
+         const response: IMIResponse = await this.miService.execute(request).toPromise();
+
+         if (!response.hasError()) {
+            return response.items.length > 0 ? response.items : [];
+         } else {
+            return [{ error: true, errorMessage: response.errorMessage }];
+         }
+      } catch (error) {
+         console.error("Error:", error);
+         return [{ error: true, errorMessage: error }];
+      }
+   }
+   async call_PDS002_CreateOperation(input: any): Promise<any> {
+      try {
+         const inputRecord = new MIRecord();
+
+         inputRecord.setString('CONO', this.userContext.currentCompany);
+
+         if (Array.isArray(input) && input.length > 0) {
+            const record = input[0];
+            Object.keys(record).forEach((key) => {
+               const value = record[key];
+               if (value !== undefined && value !== null) {
+                  inputRecord.setString(key, String(value).trim());
+               }
+            });
+         }
+
+         const request: IMIRequest = {
+            program: 'PDS002MI',
+            transaction: 'AddOperation',
+            record: inputRecord,
+            maxReturnedRecords: 0,
+            outputFields: []
+         };
+
+         const response: IMIResponse = await this.miService.execute(request).toPromise();
+
+         if (!response.hasError()) {
+            return response.items.length > 0 ? response.items : [];
+         } else {
+            return [{ error: true, errorMessage: response.errorMessage }];
+         }
+      } catch (error) {
+         console.error("Error:", error);
+         return [{ error: true, errorMessage: error }];
+      }
+   }
+   async call_PPS040_AddItemSupplier(itno: string, suno: string): Promise<any> {
       try {
          const inputRecord = new MIRecord();
 
          inputRecord.setString('CONO', this.userContext.currentCompany);
          inputRecord.setString('ITNO', itno);
          inputRecord.setString('SUNO', suno);
-         inputRecord.setString('RTYP', rtyp);
-         inputRecord.setString('ISRS', isrs);
-         inputRecord.setString('ORCO', orco);
+         inputRecord.setString('QUCL', "A");
+         inputRecord.setString('LCLV', "4");
 
-         inputRecord.setString('SITE', site);
-         inputRecord.setString('SITT', sitt);
-         inputRecord.setString('PUPR', pupr);
-         inputRecord.setString('PUCD', pucd);
-         inputRecord.setString('UVDT', uvdt);
 
 
          const request: IMIRequest = {
             program: 'PPS040MI',
             transaction: 'AddItemSupplier',
+            record: inputRecord,
+            maxReturnedRecords: 0,
+            outputFields: []
+         };
+
+         const response: IMIResponse = await this.miService.execute(request).toPromise();
+
+         if (!response.hasError()) {
+            return response.items.length > 0 ? response.items : response.items;
+         } else {
+            return [{ error: true, errorMessage: response.errorMessage }];
+         }
+      } catch (error) {
+         console.error("Error:", error);
+         return [{ error: true, errorMessage: error }];
+      }
+   }
+   async call_CRS620_GetSupplierCUCD(suno: string): Promise<any> {
+      try {
+         const inputRecord = new MIRecord();
+
+         inputRecord.setString('CONO', this.userContext.currentCompany);
+         inputRecord.setString('SUNO', suno);
+
+
+
+         const request: IMIRequest = {
+            program: 'CRS620MI',
+            transaction: 'GetBasicData',
+            record: inputRecord,
+            maxReturnedRecords: 0,
+            outputFields: ['CUCD']
+         };
+
+         const response: IMIResponse = await this.miService.execute(request).toPromise();
+
+         if (!response.hasError()) {
+            return response.items.length > 0 ? response.items : response.items;
+         } else {
+            return [{ error: true, errorMessage: response.errorMessage }];
+         }
+      } catch (error) {
+         console.error("Error:", error);
+         return [{ error: true, errorMessage: error }];
+      }
+   }
+   async call_PPS040_UpdItemSupplier(itno: string, suno: string, rtyp: string, isrs: string, orco: string, site: string, sitt: string, pupr: string, pucd: string, uvdt: string): Promise<any> {
+      try {
+         const inputRecord = new MIRecord();
+
+         inputRecord.setString('ITNO', itno);
+         inputRecord.setString('SUNO', suno);
+         inputRecord.setString('RTYP', rtyp);
+         inputRecord.setString('ISRS', isrs);
+         inputRecord.setString('ORCO', orco);
+         inputRecord.setString('SITE', site);
+         inputRecord.setString('SITT', sitt);
+         inputRecord.setString('PUPR', pupr);
+         inputRecord.setString('PUCD', pucd);
+         inputRecord.setString('FVDT', new Date().toISOString().slice(0, 10).replace(/-/g, ''));
+         inputRecord.setString('UVDT', uvdt);
+
+         const request: IMIRequest = {
+            program: 'PPS040MI',
+            transaction: 'UpdItemSupplier',
             record: inputRecord,
             maxReturnedRecords: 0,
             outputFields: []
@@ -1519,7 +1657,7 @@ export class SharedService {
          // copy all fields from input (recordFound)
          Object.keys(input).forEach((key) => {
             if (input[key] !== undefined && input[key] !== null) {
-               inputRecord.setString(key, String(input[key]));
+               inputRecord.setString(key, String(input[key])?.trim());
             }
          });
 
@@ -1527,7 +1665,6 @@ export class SharedService {
          inputRecord.setString("CONO", this.userContext.currentCompany);
          inputRecord.setString("OBV1", item);
          inputRecord.setString("FDAT", formattedDate);
-         inputRecord.setString("TDAT", "99999999");
          inputRecord.setString("ORTY", orty);
 
          const request: IMIRequest = {
@@ -1959,7 +2096,7 @@ export class SharedService {
          return [];
       }
    }
-   async call_MMS200_GetItmDIGI_ACRF(qery: string): Promise<any> {
+   async call_MMS200_GetItmBasicMissing(qery: string): Promise<any> {
       try {
          const inputRecord = new MIRecord();
          inputRecord.setString('SEPC', ";");

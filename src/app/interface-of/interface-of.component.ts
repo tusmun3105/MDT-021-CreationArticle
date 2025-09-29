@@ -4,6 +4,8 @@ import { SharedService } from '../shared/shared.service';
 import { FormGroup, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ApplicationService } from '@infor-up/m3-odin-angular';
+import { distinctUntilChanged } from 'rxjs/operators';
+
 @Component({
    selector: 'app-interface-of',
    templateUrl: './interface-of.component.html',
@@ -193,6 +195,22 @@ export class InterfaceOFComponent implements OnInit {
       await this.setPageTitle();
       this.onTab();
       this.initializeLookups();
+
+
+      //Fetch CUCD from CRS624 when SUNO changes
+      this.formMITBAL.get('MBSUNO')?.valueChanges
+         .pipe(distinctUntilChanged())
+         .subscribe(async (newValue: string) => {
+            const respSuppCUCD = await this.shared.call_CRS620_GetSupplierCUCD(newValue?.trim());
+            if (respSuppCUCD.length > 0 && !respSuppCUCD[0].error) {
+               this.formMITVEN.patchValue({ IFCUCD: respSuppCUCD[0]?.CUCD });
+            } else {
+               this.formMITVEN.patchValue({ IFCUCD: "" });
+            }
+         });
+
+
+
       this.initializeDatepicker();
       await this.updateLookupDataset();
       this.disabledFieldsMMS030();
@@ -212,7 +230,7 @@ export class InterfaceOFComponent implements OnInit {
          this.shared.call_MMS025_LstAlias(window.history.state?.ITNOREF || ''),
          this.shared.call_CUSEXT_GetFieldValue("MITMAS", window.history.state.ITNOREF),
          this.shared.call_ListECO_Product(`CIECRG, CIECRG, CIECOP from CECOCI where CICONO = ${this.shared.userContext.currentCompany} and CIITNO = ${window.history.state.ITNOREF} and CICSOR = FR`),
-         this.shared.call_MMS200_GetItmDIGI_ACRF(`MMDIGI from MITMAS where MMITNO = ${window.history.state.ITNOREF}`),
+         this.shared.call_MMS200_GetItmBasicMissing(`MMDIGI from MITMAS where MMITNO = ${window.history.state.ITNOREF}`),
          this.shared.call_MMS030_List(window.history.state.ITNOREF),
          this.shared.call_EXPORT_LEA1(window.history.state?.WHLO, window.history.state?.ITNOREF)
       ]);
@@ -262,7 +280,7 @@ export class InterfaceOFComponent implements OnInit {
 
          this.formMITMAS.patchValue({
             CIECRG: rawECRG?.trim(),
-            CIECOP: rawECRG?.trim(),
+            CIECOP: rawECOP?.trim(),
          });
       }
 
@@ -301,6 +319,7 @@ export class InterfaceOFComponent implements OnInit {
             MBWHSL: window.history.state?.WHLO === "10S" ? "" : (this.shared.warehouseLocationRefModel || ""),
             MBORTY: itemWhsBasic?.ORTY || ""
          });
+
 
          this.formMITVEN.patchValue({
             MBLEA1: itemWhsBasicLEA1?.REPL || ""
@@ -598,7 +617,7 @@ export class InterfaceOFComponent implements OnInit {
          //     ************************     ENS025     ************************     \\
          this.ENS025 = true;
          if (this.formMITMAS.value.CIECRG?.trim() != "" && this.formMITMAS.value.CIECOP?.trim() != "") {
-            await this.launchENS025(this.formMITMAS.value.CIECRG, this.formMITMAS.value.CIECOP, this.formMITMAS.value.MMITNO.toUpperCase());
+            await this.launchENS025Create(this.formMITMAS.value.CIECRG, this.formMITMAS.value.CIECOP, this.formMITMAS.value.MMITNO.toUpperCase());
          }
          this.iconENS025 = "#icon-success";
 
@@ -610,7 +629,7 @@ export class InterfaceOFComponent implements OnInit {
             const respFaciSupp = await this.shared.call_MMS200_CpyItmFacOF_Supplier(valueMITBAL);
          }
          //     ************************     Creation of Item in Depot/Facility Client for all interfaces     ************************     \\
-         let valueMITFAC = await this.valueMITFAC();
+         let valueMITFAC = await this.valueMITFAC(valueMITBAL);
 
          this.MMS002 = true;
          const respWhsClient = await this.shared.call_MMS200_CpyItmWhsOF_Client(valueMITBAL, value);
@@ -626,9 +645,9 @@ export class InterfaceOFComponent implements OnInit {
             );
             this.MMS003 = true;
             const respECCC = await this.shared.call_MMS200_GetItmFac(valueMITBAL?.FACI, valueMITBAL?.refModelArticle);
-            value.ECCC = "";
+            valueMITFAC.ECCC = "";
             if (respECCC.length > 0 && !respECCC[0].error) {
-               value.ECCC = respECCC[0]?.ECCC;
+               valueMITFAC.ECCC = respECCC[0]?.ECCC;
             }
             const respFaciClient = await this.shared.call_MMS200_UpdItmFacOF_Client(valueMITBAL, valueMITFAC);
             if (respFaciClient.length > 0 && respFaciClient[0].error) {
@@ -649,8 +668,13 @@ export class InterfaceOFComponent implements OnInit {
 
             if (respMMS059_List.length > 0 && !respMMS059_List[0].error) {
                recordFound = respMMS059_List.find(
-                  (rec: any) => rec.SPLM === "ADV1" && rec.PREX === "4" && rec.SPLA === "1" && rec.OBV1 === valueMITBAL?.refModelArticle
+                  (rec: any) =>
+                     rec.SPLM?.toString()?.trim() == "ADV1" &&
+                     rec.PREX?.toString()?.trim() == "4" &&
+                     rec.SPLA?.toString()?.trim() == "1" &&
+                     rec.OBV1?.toString()?.trim() == valueMITBAL.refModelArticle?.trim()
                );
+               console.log("recordFound", recordFound);
                if (recordFound) {
                   const orty = valueMITBAL?.ORTY || "";
                   const newORTY = orty.startsWith("ITJ") ? "240" : "200";
@@ -669,41 +693,58 @@ export class InterfaceOFComponent implements OnInit {
             this.iconMMS059 = "#icon-success";
          }
 
-         // ************************     PDS001  & PDS002   ************************ \\
+         // ************************     PDS001     ************************ \\
          if (window.history.state?.PUIT == "1") {
             this.PDS001 = true;
-            const respPDS001 = await this.shared.call_PDS001_CPY(valueMITBAL.FACI, valueMITBAL.FACI, "T111000000", value.newITNO, "STD");
-            if (respPDS001.length > 0 && !respPDS001[0].error) {
-               let dcon = "";
-               if (value.CHCD == 1) {
-                  dcon = "1";
-               }
-               else {
-                  dcon = "0";
-               }
-               const respPDS001Update = await this.shared.call_PDS001_Update(valueMITBAL.FACI, value.newITNO, "20", "STD", value.RESP, value.DWNO, dcon);
+            await this.launchPDS001Copy(valueMITBAL?.FACI?.trim(), valueMITBAL?.refModelArticle, "STD", valueMITBAL?.newITNO?.trim());
+            await new Promise(resolve => setTimeout(resolve, 2500));
+            const respCheckPDS001 = await this.shared.call_PDS001_GetProductStructure(valueMITBAL?.FACI?.trim(), valueMITBAL?.newITNO?.trim(), "STD");
+            if (respCheckPDS001 > 0 && !respCheckPDS001[0].error) {
                this.iconPDS001 = "#icon-success";
-               // ************************     Delete PDS002 if not checked   ************************ \\
+               const dcon = value?.CHCD === "1" ? "1" : "0";
+
+               const respUpdatePDS001 = await this.shared.call_PDS001_Update(
+                  valueMITBAL?.FACI?.trim(),
+                  valueMITBAL?.newITNO?.trim(),
+                  "20",
+                  "STD",
+                  value?.RESP,
+                  value?.DWNO,
+                  dcon
+               );
+
                this.PDS002 = true;
-               if (!this.formMITBAL.value.CREATELINE) {
-                  const respListComp = await this.shared.call_PDS002_LstComponent(
-                     valueMITBAL.FACI,
-                     value.newITNO,
-                     "STD"
-                  );
 
-                  if (!respListComp.length || respListComp[0].error) return;
+               const respListCompoPDS002 = await this.shared.call_PDS002_LstComponent(
+                  valueMITBAL?.FACI?.trim(),
+                  window.history.state?.ITNOREF,
+                  "STD"
+               );
 
+               const respLstOperationPDS002 = await this.shared.call_PDS002_LstOperation(
+                  valueMITBAL?.FACI?.trim(),
+                  window.history.state?.ITNOREF,
+                  "STD"
+               );
+
+               if (respListCompoPDS002.length > 0 && !respListCompoPDS002[0].error) {
                   await Promise.all(
-                     respListComp.map((comp: any) =>
-                        this.shared.call_PDS002_Delete(comp?.FACI, comp?.PRNO, comp?.STRT, comp?.MSEQ)
-                     )
+                     respListCompoPDS002.map(item => this.shared.call_PDS002_CreateComponent(item))
                   );
-                  this.iconPDS002 = "#icon-success";
                }
 
-            } else {
+               if (respLstOperationPDS002.length > 0 && !respLstOperationPDS002[0].error) {
+                  await Promise.all(
+                     respLstOperationPDS002.map(item => this.shared.call_PDS002_CreateOperation(item))
+                  );
+               }
+
+               this.iconPDS002 = "#icon-success";
+            }
+            else {
                this.iconPDS001 = "#icon-rejected-solid";
+               this.PDS002 = true;
+               this.iconPDS002 = "#icon-rejected-solid";
             }
          }
          // ************************     PPS040    ************************ \\
@@ -711,12 +752,13 @@ export class InterfaceOFComponent implements OnInit {
             this.PPS040 = true;
             const valMITVEN = await this.valueMITVEN();
             if (this.hideFieldMITVEN == false) {
-               const respPPS040 = await this.shared.call_PPS040_AddItemSupplier(value.newITNO, valueMITBAL.SUNO, "1", "20", valueMITFAC.M9ORCO, valMITVEN.SITE, valMITVEN.SITT, valMITVEN.PUPR, valMITVEN.PUCD, valMITVEN.UVDT);
+               const respPPS040 = await this.shared.call_PPS040_AddItemSupplier(value.newITNO, valueMITBAL.SUNO);
                if (respPPS040.length > 0 && respPPS040[0].error) {
                   this.iconPPS040 = "#icon-rejected-solid";
                }
                else {
                   this.iconPPS040 = "#icon-success";
+                  const respUpdatePPS040 = await this.shared.call_PPS040_UpdItemSupplier(value.newITNO, valueMITBAL.SUNO, "1", "20", valueMITFAC.M9ORCO, valMITVEN.SITE, valMITVEN.SITT, valMITVEN.PUPR, valMITVEN.PUCD, valMITVEN.UVDT)
                }
             }
          }
@@ -838,6 +880,7 @@ export class InterfaceOFComponent implements OnInit {
                   formGroup.patchValue({ [field.inputId]: args[0].data[field.colId] });
                }
             }
+
             this.setLabelforSelectedValue();
          });
 
@@ -926,7 +969,6 @@ export class InterfaceOFComponent implements OnInit {
    }
 
    setPageTitle() {
-      console.log("window.history.state", window.history.state)
       // Set page title from history state
       this.pageTitle = window.history.state?.Title || '';
       //Set WHLO
@@ -1081,14 +1123,9 @@ export class InterfaceOFComponent implements OnInit {
          { key: "M9ACRF", list: this.respACRF, field: "ACRF", label: this.lang.get("MITFAC_FIELD_LABELS").M9ACRF },
          { key: "MMITTY", list: this.respITTY, field: "ITTY", label: this.lang.get("MITMAS_FIELD_LABELS").MMITTY },
          { key: "MMVTCP", list: this.respVTCP, field: "VTCD", label: this.lang.get("MITMAS_FIELD_LABELS").MMVTCP },
-         { key: "IFCUCD", list: this.respCUCD, field: "CUCD", label: this.lang.get("MITVEN_FIELD_LABELS").IFCUCD },
       ];
-      if (window.history.state?.PUIT == 1) {
+      if (window.history.state?.PUIT == 1 || window.history.state?.PUIT == 3) {
          validations = validations.filter(v => v.key !== "M9WCLN");
-      } else if (window.history.state?.PUIT == 2) {
-         validations = validations.filter(v => v.key !== "IFCUCD");
-      } else if (window.history.state?.PUIT == 3) {
-         validations = validations.filter(v => v.key !== "M9WCLN" && v.key !== "IFCUCD");
       }
 
 
@@ -1452,8 +1489,11 @@ export class InterfaceOFComponent implements OnInit {
       }
 
       //DIGI
-      value.DIGI = (this.formMITMAS.value.MMDIGI ?? '').toString().trim()
+      value.DIGI = (this.formMITMAS.value.MMDIGI ?? '').toString().trim();
 
+      //IWID && ILEN
+      value.IWID = (this.formMITMAS.value.MMIWID ?? '0').toString().trim();
+      value.ILEN = (this.formMITMAS.value.MMILEN ?? '0').toString().trim();
       return value;
    }
 
@@ -1498,9 +1538,9 @@ export class InterfaceOFComponent implements OnInit {
          }
       }
       if (puit == "2") {
-         value.LEA1 = this.formMITVEN.value?.MBLEA1;
+         value.LEA1 = this.formMITVEN.value?.MBLEA1?.toString();
       } else {
-         value.LEA1 = respItemWhs?.LEA1;
+         value.LEA1 = respItemWhs?.LEA1?.toString();
       }
       const objCtrlComp = this.formMITFAC.value.M9ACRF;
 
@@ -1528,12 +1568,13 @@ export class InterfaceOFComponent implements OnInit {
 
       return value;
    }
-   async valueMITFAC(): Promise<any> {
+   async valueMITFAC(valMitbal: any): Promise<any> {
       let value: any = {};
       value.ACRF = this.formMITFAC.value.M9ACRF;
       value.CSNO = this.formMITMAS.value.M9CSNO;
       value.ORCO = this.formMITMAS.value.M9ORCO;
       value.VAMT = this.formMITFAC.value.M9VAMT?.toString();
+      value.REWH = valMitbal.WHLO;
       return value;
    }
    async valueMITVEN(): Promise<any> {
@@ -1574,7 +1615,7 @@ export class InterfaceOFComponent implements OnInit {
          console.error("Error fetching ENS015:", error);
       }
    }
-   async launchENS025(org: string, contri: string, item: string) {
+   async launchENS025Create(org: string, contri: string, item: string) {
       const today = new Date();
       const day = String(today.getDate()).padStart(2, '0');
       const month = String(today.getMonth() + 1).padStart(2, '0');
@@ -1598,6 +1639,7 @@ export class InterfaceOFComponent implements OnInit {
               <field name="WEVTDT"></field>
           </step>
           <step command="KEY" value="ENTER" />
+          <step command="KEY" value="F3" />
       </sequence>
       `;
 
@@ -1612,11 +1654,52 @@ export class InterfaceOFComponent implements OnInit {
          xmlTemplate = xmlTemplate.replace(new RegExp(key, 'g'), value);
       });
 
-      console.log(xmlTemplate);
+      console.log("xmlTemplate", xmlTemplate);
 
       const prefix = `mforms://_automation?data=${encodeURIComponent(xmlTemplate)}`;
       return this.appService.launch(prefix);
    }
+   async launchPDS001Copy(faci: string, cpyprno: string, strt: string, newprno: string) {
+      let xmlTemplate = `<?xml version="1.0" encoding="utf-8"?>
+    <sequence>
+        <step command="RUN" value="PDS001" />
+        <step command="AUTOSET">
+            <field name="WWQTTP">1</field>
+            <field name="W1OBKV">{{faci}}</field>
+            <field name="W2OBKV">{{cpyprno}}</field>
+            <field name="W3OBKV">{{strt}}</field>
+        </step>
+        <step command="KEY" value="ENTER" />
+        <step command="LSTOPT" value="3" />
+        <step command="AUTOSET">
+            <field name="CPFACI">{{faci}}</field>
+            <field name="CPPRNO">{{newprno}}</field>
+            <field name="CPSTRT">{{strt}}</field>
+            <field name="CPCPOP">0</field>
+            <field name="WCCPPV">0</field>
+        </step>
+        <step command="KEY" value="ENTER" />
+        <step command="KEY" value="F3" />
+    </sequence>`;
+
+      const replacements: Record<string, string> = {
+         '{{faci}}': faci?.trim(),
+         '{{cpyprno}}': cpyprno?.trim(),
+         '{{strt}}': strt?.trim(),
+         '{{newprno}}': newprno?.trim() // if needed later
+      };
+
+      Object.entries(replacements).forEach(([key, value]) => {
+         xmlTemplate = xmlTemplate.replace(new RegExp(key, 'g'), value);
+      });
+
+      console.log("xmlTemplate", xmlTemplate);
+
+      const prefix = `mforms://_automation?data=${encodeURIComponent(xmlTemplate)}`;
+      return this.appService.launch(prefix);
+   }
+
+
    resetProgressBar() {
       this.validateField = false;
       this.iconValidateField = "";

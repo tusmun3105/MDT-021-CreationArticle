@@ -139,7 +139,7 @@ export class InterfaceKITFGComponent implements OnInit {
       const [respItemBasic, respCugex, respMM200DIGI_ACRF, respFACI, respMMS030List] = await Promise.all([
          this.shared.call_MMS200_GetItem(window.history.state.ITNOREF),
          this.shared.call_CUSEXT_GetFieldValue("MITMAS", window.history.state.ITNOREF),
-         this.shared.call_MMS200_GetItmDIGI_ACRF(`MMDIGI, MMACRF from MITMAS where MMITNO = ${window.history.state.ITNOREF}`),
+         this.shared.call_MMS200_GetItmBasicMissing(`MMDIGI, MMACRF from MITMAS where MMITNO = ${window.history.state.ITNOREF}`),
          this.shared.call_MMS200_GetItmFac(window.history.state.FACI, window.history.state.ITNOREF),
          this.shared.call_MMS030_List(window.history.state.ITNOREF)
       ]);
