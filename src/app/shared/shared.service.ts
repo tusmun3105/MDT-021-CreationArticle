@@ -1447,7 +1447,7 @@ export class SharedService {
          return [{ error: true, errorMessage: error }];
       }
    }
-   async call_PDS002_CreateComponent(input: any): Promise<any> {
+   async call_PDS002_CreateComponent(input: any, newitno: string): Promise<any> {
       try {
          const inputRecord = new MIRecord();
          inputRecord.setString('CONO', this.userContext.currentCompany);
@@ -1458,6 +1458,7 @@ export class SharedService {
                inputRecord.setString(key, String(value).trim());
             }
          });
+         inputRecord.setString('PRNO', newitno);
 
          const request: IMIRequest = {
             program: 'PDS002MI',
@@ -1475,7 +1476,7 @@ export class SharedService {
       }
    }
 
-   async call_PDS002_DeleteCompoNOperation(input: any): Promise<any> {
+   async call_PDS002_DeleteCompoNOperation(input: any, newitno: string): Promise<any> {
       try {
          const inputRecord = new MIRecord();
          inputRecord.setString('CONO', this.userContext.currentCompany);
@@ -1486,6 +1487,7 @@ export class SharedService {
                inputRecord.setString(key, String(value).trim());
             }
          });
+         inputRecord.setString('PRNO', newitno);
 
          const request: IMIRequest = {
             program: 'PDS002MI',
@@ -1503,7 +1505,7 @@ export class SharedService {
       }
    }
 
-   async call_PDS002_CreateOperation(input: any): Promise<any> {
+   async call_PDS002_CreateOperation(input: any, newitno: string): Promise<any> {
       try {
          const inputRecord = new MIRecord();
          inputRecord.setString('CONO', this.userContext.currentCompany);
@@ -1514,7 +1516,7 @@ export class SharedService {
                inputRecord.setString(key, String(value).trim());
             }
          });
-
+         inputRecord.setString('PRNO', newitno);
          const request: IMIRequest = {
             program: 'PDS002MI',
             transaction: 'AddOperation',

@@ -732,13 +732,13 @@ export class InterfaceOFComponent implements OnInit {
 
                   if (respListCompoPDS002.length > 0 && !respListCompoPDS002[0].error) {
                      await Promise.all(
-                        respListCompoPDS002.map(item => this.shared.call_PDS002_CreateComponent(item))
+                        respListCompoPDS002.map(item => this.shared.call_PDS002_CreateComponent(item, valueMITBAL?.newITNO?.trim()))
                      );
                   }
 
                   if (respLstOperationPDS002.length > 0 && !respLstOperationPDS002[0].error) {
                      await Promise.all(
-                        respLstOperationPDS002.map(item => this.shared.call_PDS002_CreateOperation(item))
+                        respLstOperationPDS002.map(item => this.shared.call_PDS002_CreateOperation(item, valueMITBAL?.newITNO?.trim()))
                      );
                   }
 
@@ -760,13 +760,13 @@ export class InterfaceOFComponent implements OnInit {
 
                   if (respListCompoPDS002.length > 0 && !respListCompoPDS002[0].error) {
                      await Promise.all(
-                        respListCompoPDS002.map(item => this.shared.call_PDS002_DeleteCompoNOperation(item))
+                        respListCompoPDS002.map(item => this.shared.call_PDS002_DeleteCompoNOperation(item, valueMITBAL?.newITNO?.trim()))
                      );
                   }
 
                   if (respLstOperationPDS002.length > 0 && !respLstOperationPDS002[0].error) {
                      await Promise.all(
-                        respLstOperationPDS002.map(item => this.shared.call_PDS002_DeleteCompoNOperation(item))
+                        respLstOperationPDS002.map(item => this.shared.call_PDS002_DeleteCompoNOperation(item, valueMITBAL?.newITNO?.trim()))
                      );
                   }
                }
