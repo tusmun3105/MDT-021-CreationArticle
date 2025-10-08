@@ -514,17 +514,40 @@ export class InterfaceOFComponent implements OnInit {
       if (respCPY.length > 0 && !respCPY[0].error) {
          this.iconMMS001_CUGEX = "#icon-success";
          //     ************************     After Item creation update Basic info/ Update price// add/upd CUGEX MITMAS     ************************     \\
-         const [
-            respUpdateACRF,
-            respUpdateDIGI,
-            respAddCugexMitmas,
-            respChgCugexMitmas
-         ] = await Promise.all([
-            this.shared.call_MMS200_UpdItmBasic(value.newITNO, value.ACRF, value.ILEN, value.IWID),     // update ACRF, ILEN, IWID
-            this.shared.call_MMS200_UpdItmPrice(value.newITNO, value.DIGI),     // update DIGI
-            this.shared.call_CUSEXT_AddFieldValue("MITMAS", value.newITNO, delpic?.toString(), delgam?.toString(), delchef?.toString(), ""),
-            this.shared.call_CUSEXT_ChgieldValue("MITMAS", value.newITNO, delpic?.toString(), delgam?.toString(), delchef?.toString(), "")
+         // 1 Run first call
+         const respUpdateACRF = await this.shared.call_MMS200_UpdItmBasic(
+            value.newITNO,
+            value.ACRF,
+            value.ILEN,
+            value.IWID
+         );
+
+         // 2 Run second call (waits for first)
+         const respUpdateDIGI = await this.shared.call_MMS200_UpdItmPrice(
+            value.newITNO,
+            value.DIGI
+         );
+
+         // 3 Run the remaining calls simultaneously
+         const [respAddCugexMitmas, respChgCugexMitmas] = await Promise.all([
+            this.shared.call_CUSEXT_AddFieldValue(
+               "MITMAS",
+               value.newITNO,
+               delpic?.toString(),
+               delgam?.toString(),
+               delchef?.toString(),
+               ""
+            ),
+            this.shared.call_CUSEXT_ChgieldValue(
+               "MITMAS",
+               value.newITNO,
+               delpic?.toString(),
+               delgam?.toString(),
+               delchef?.toString(),
+               ""
+            )
          ]);
+
          this.shared.displaySuccessMessage(`${this.lang.get('ERROR_TYPE')['SUCCESS']}`, `${value.newITNO} ${this.lang.get('ERROR_TYPE')['CREATED_WITH_SUCCESS']}`);
 
          //     ************************     MMS030 - MITLAD     ************************     \\
