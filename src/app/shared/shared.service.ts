@@ -1625,7 +1625,11 @@ export class SharedService {
          inputRecord.setString('PUPR', pupr);
          inputRecord.setString('PUCD', pucd);
          inputRecord.setString('FVDT', new Date().toISOString().slice(0, 10).replace(/-/g, ''));
-         inputRecord.setString('UVDT', uvdt);
+         if (uvdt == "") {
+            inputRecord.setString('UVDT', new Date().toISOString().slice(0, 10).replace(/-/g, ''));
+         } else {
+            inputRecord.setString('UVDT', uvdt);
+         }
 
          const request: IMIRequest = {
             program: 'PPS040MI',
