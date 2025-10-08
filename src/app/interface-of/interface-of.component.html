@@ -298,7 +298,7 @@
                            maxlength="10" /></td>
                      <span><span id="MBWHSLSelectedValue" class="selectedItem"></span></span>
                   </tr>
-                  <tr [hidden]="hideFieldMITBALOD">
+                  <tr [hidden]="!hideFieldMITBALOD">
                      <td><label for="MBSUWH">{{ lang.get('MITBAL_FIELD_LABELS').MBSUWH }}</label></td>
                      <td><input type="text" id="MBSUWH" name="MBSUWH" formControlName="MBSUWH" class="lookup"
                            maxlength="3" /></td>
