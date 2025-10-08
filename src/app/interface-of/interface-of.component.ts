@@ -36,9 +36,11 @@ export class InterfaceOFComponent implements OnInit {
    lookupWHSL;
    lookupORTY;
    lookupCUCD;
+   lookupSUWH;
 
    //resp lookup
    respITGR = [];
+   respWHLO = [];
    respPRGP = [];
    respCSNO = [];
    respORCO = [];
@@ -130,6 +132,7 @@ export class InterfaceOFComponent implements OnInit {
       MMGRTS: new FormControl(''),
       M9WCLN: new FormControl(''),
       MBWHSL: new FormControl(''),
+      MBSUWH: new FormControl(''),
       MBORTY: new FormControl(''),
       CREATELINE: new FormControl(true),
    });
@@ -151,6 +154,7 @@ export class InterfaceOFComponent implements OnInit {
    hideFieldMITVEN: boolean = false;
    hideFieldMITBAL: boolean = false;
    hideFieldMITNWL: boolean = false;
+   hideFieldMITBALOD: boolean = false;
    hideMMS059ProgressBar: boolean = false;
    hidePDS002ProgressBar: boolean = true;
    respItemBasicMMS001: any;
@@ -317,6 +321,7 @@ export class InterfaceOFComponent implements OnInit {
             MBSUNO: itemWhsBasic?.SUNO || "",
             MMGRTS: itemBasic?.GRTS || "",
             MBWHSL: window.history.state?.WHLO === "10S" ? "" : (this.shared.warehouseLocationRefModel || ""),
+            MBSUWH: itemWhsBasic?.SUWH || "",
             MBORTY: itemWhsBasic?.ORTY || ""
          });
 
@@ -515,12 +520,12 @@ export class InterfaceOFComponent implements OnInit {
             respAddCugexMitmas,
             respChgCugexMitmas
          ] = await Promise.all([
-            this.shared.call_MMS200_UpdItmBasic(value.newITNO, value.ACRF),     // update ACRF
+            this.shared.call_MMS200_UpdItmBasic(value.newITNO, value.ACRF, value.ILEN, value.IWID),     // update ACRF, ILEN, IWID
             this.shared.call_MMS200_UpdItmPrice(value.newITNO, value.DIGI),     // update DIGI
             this.shared.call_CUSEXT_AddFieldValue("MITMAS", value.newITNO, delpic?.toString(), delgam?.toString(), delchef?.toString(), ""),
             this.shared.call_CUSEXT_ChgieldValue("MITMAS", value.newITNO, delpic?.toString(), delgam?.toString(), delchef?.toString(), "")
          ]);
-
+         this.shared.displaySuccessMessage(`${this.lang.get('ERROR_TYPE')['SUCCESS']}`, `${value.newITNO} ${this.lang.get('ERROR_TYPE')['CREATED_WITH_SUCCESS']}`);
 
          //     ************************     MMS030 - MITLAD     ************************     \\
          this.MMS030 = true;
@@ -624,9 +629,8 @@ export class InterfaceOFComponent implements OnInit {
          //     ************************     Creation of Item in Depot/Facility Supplier for all interfaces     ************************     \\
          const valueMITBAL = await this.valueMITBAL();
          const puit = window.history.state?.PUIT;
-         if (puit == "3" && value.SUWH != "") {
+         if (puit == "3" && valueMITBAL.SUWH != "") {
             const respWhsSupp = await this.shared.call_MMS200_CpyItmWhsOF_Supplier(valueMITBAL);
-            const respFaciSupp = await this.shared.call_MMS200_CpyItmFacOF_Supplier(valueMITBAL);
          }
          //     ************************     Creation of Item in Depot/Facility Client for all interfaces     ************************     \\
          let valueMITFAC = await this.valueMITFAC(valueMITBAL);
@@ -674,7 +678,6 @@ export class InterfaceOFComponent implements OnInit {
                      rec.SPLA?.toString()?.trim() == "1" &&
                      rec.OBV1?.toString()?.trim() == valueMITBAL.refModelArticle?.trim()
                );
-               console.log("recordFound", recordFound);
                if (recordFound) {
                   const orty = valueMITBAL?.ORTY || "";
                   const newORTY = orty.startsWith("ITJ") ? "240" : "200";
@@ -706,7 +709,7 @@ export class InterfaceOFComponent implements OnInit {
                const respUpdatePDS001 = await this.shared.call_PDS001_Update(
                   valueMITBAL?.FACI?.trim(),
                   valueMITBAL?.newITNO?.trim(),
-                  "20",
+                  "10",
                   "STD",
                   value?.RESP,
                   value?.DWNO,
@@ -732,7 +735,7 @@ export class InterfaceOFComponent implements OnInit {
 
                   if (respListCompoPDS002.length > 0 && !respListCompoPDS002[0].error) {
                      await Promise.all(
-                        respListCompoPDS002.map(item => this.shared.call_PDS002_CreateComponent(item, valueMITBAL?.newITNO?.trim()))
+                        respListCompoPDS002.map(item => this.shared.call_PDS002_CreateComponent(item, valueMITBAL?.newITNO?.trim(), valueMITBAL?.WHLO?.trim(), valueMITBAL?.WHSL?.trim()))
                      );
                   }
 
@@ -833,6 +836,7 @@ export class InterfaceOFComponent implements OnInit {
          { key: 'WCLN', inputId: 'M9WCLN', colId: 'WCLN', labelSet: columnNamesMitfac },
          { key: 'WHSL', inputId: 'MBWHSL', colId: 'WHSL', labelSet: columnNamesMitbal },
          { key: 'ORTY', inputId: 'MBORTY', colId: 'ORTY', labelSet: columnNamesMitbal },
+         { key: 'SUWH', inputId: 'MBSUWH', colId: 'SUWH', labelSet: columnNamesMitbal },
          { key: 'CUCD', inputId: 'IFCUCD', colId: 'CUCD', labelSet: columnNamesMitven },
 
       ];
@@ -842,7 +846,7 @@ export class InterfaceOFComponent implements OnInit {
             { id: 'TX15', name: TX15, field: 'TX15', formatter: Soho.Formatters.Text, filterType: 'text' },
             { id: 'TX40', name: TX40, field: 'TX40', formatter: Soho.Formatters.Text, filterType: 'text' }
          ];
-         let removeTX40For = ["DWNO", "USID", "SUNO", "WCLN", "WHSL"];
+         let removeTX40For = ["DWNO", "USID", "SUNO", "WCLN", "WHSL", "SUWH"];
          if (window.history.state?.PUIT == "3") {
             removeTX40For.push("ORTY");
          }
@@ -867,7 +871,7 @@ export class InterfaceOFComponent implements OnInit {
 
          const MITMAS_FIELDS = ['MMITGR', 'MMPRGP', 'M9CSNO', 'M9ORCO', 'MMDIGI', 'MMCFI3', 'MMDWNO', 'CIECOP', 'CIECRG'];
          const MITFAC_FIELDS = ['MMVTCP', 'MMITTY', 'M9ACRF'];
-         const MITBAL_FIELDS = ['MBRESP', 'MBBUYE', 'MMGRTS', 'MBSUNO', 'M9WCLN', 'MBWHSL', 'MBORTY'];
+         const MITBAL_FIELDS = ['MBRESP', 'MBBUYE', 'MMGRTS', 'MBSUNO', 'M9WCLN', 'MBWHSL', 'MBORTY', 'MBSUWH'];
          const MITVEN_FIELDS = ['IFCUCD'];
 
          switch (field.inputId) {
@@ -891,6 +895,7 @@ export class InterfaceOFComponent implements OnInit {
             case 'MBWHSL': this.lookupWHSL = lookupInstance; break;
             case 'MBORTY': this.lookupORTY = lookupInstance; break;
             case 'IFCUCD': this.lookupCUCD = lookupInstance; break;
+            case 'MBSUWH': this.lookupSUWH = lookupInstance; break;
          }
 
          $(`#${field.inputId}`).on('change', (e, args) => {
@@ -944,7 +949,8 @@ export class InterfaceOFComponent implements OnInit {
          this.respSUNO,
          this.respWHSL,
          this.respORTY,
-         this.respCUCD
+         this.respCUCD,
+         this.respWHLO
       ] = await Promise.all([
          this.shared.call_CRS025_LstItemGroup(),
          this.shared.call_EXPORT_LstPurchaseGroup(),
@@ -962,7 +968,8 @@ export class InterfaceOFComponent implements OnInit {
          this.shared.call_CRS620_LstSuppliers(),
          this.shared.call_MMS010_LstEmplacement(window.history.state?.WHLO || ""),
          this.shared.call_LstOrderType(this.shared.userContext.currentCompany, window.history.state?.PUIT),
-         this.shared.call_EXPORT_LstCurrency()
+         this.shared.call_EXPORT_LstCurrency(),
+         this.shared.call_MMS005_LstWarehouses()
       ]);
 
       this.lookupITGR?.updateDataset(this.respITGR.length > 0 && this.respITGR[0].error ? [] : this.respITGR);
@@ -984,6 +991,7 @@ export class InterfaceOFComponent implements OnInit {
       this.lookupWCLN?.updateDataset([]);
       this.lookupWHSL?.updateDataset(this.respWHSL.length > 0 && this.respWHSL[0].error ? [] : this.respWHSL);
       this.lookupCUCD?.updateDataset(this.respCUCD.length > 0 && this.respCUCD[0].error ? [] : this.respCUCD);
+      this.lookupSUWH?.updateDataset(this.respWHLO.length > 0 && this.respWHLO[0].error ? [] : this.respWHLO);
       if (this.respORTY.length > 0 && this.respORTY[0].error) {
          this.respORTY = [];
       }
@@ -1035,6 +1043,9 @@ export class InterfaceOFComponent implements OnInit {
       }
       if (puit != "2") {
          this.hideFieldMITNWL = true;
+      }
+      if (puit == "3") {
+         this.hideFieldMITBALOD = true;
       }
       if (puit == "1" || puit == "2") {
          this.hideMMS059ProgressBar = false;
@@ -1127,6 +1138,7 @@ export class InterfaceOFComponent implements OnInit {
          MMGRTS: getValue(this.formMITBAL.value, "MMGRTS"),
          M9WCLN: getValue(this.formMITBAL.value, "M9WCLN"),
          MBWHSL: getValue(this.formMITBAL.value, "MBWHSL"),
+         MBSUWH: getValue(this.formMITBAL.value, "MBSUWH"),
          MBORTY: getValue(this.formMITBAL.value, "MBORTY"),
 
          POP1: getValue(this.formMITPOP.value, "POP1"),
@@ -1151,14 +1163,17 @@ export class InterfaceOFComponent implements OnInit {
          { key: "MMGRTS", list: this.respGRTS, field: "GRTS", label: this.lang.get("MITBAL_FIELD_LABELS").MMGRTS },
          { key: "M9WCLN", list: this.respWCLN, field: "WCLN", label: this.lang.get("MITFAC_FIELD_LABELS").M9WCLN },
          { key: "MBWHSL", list: this.respWHSL, field: "WHSL", label: this.lang.get("MITBAL_FIELD_LABELS").MBWHSL },
+         { key: "MBSUWH", list: this.respWHSL, field: "MBSUWH", label: this.lang.get("MITBAL_FIELD_LABELS").MBSUWH },
          { key: "M9ACRF", list: this.respACRF, field: "ACRF", label: this.lang.get("MITFAC_FIELD_LABELS").M9ACRF },
          { key: "MMITTY", list: this.respITTY, field: "ITTY", label: this.lang.get("MITMAS_FIELD_LABELS").MMITTY },
          { key: "MMVTCP", list: this.respVTCP, field: "VTCD", label: this.lang.get("MITMAS_FIELD_LABELS").MMVTCP },
       ];
-      if (window.history.state?.PUIT == 1 || window.history.state?.PUIT == 3) {
+      if (window.history.state?.PUIT == "1" || window.history.state?.PUIT == "3") {
          validations = validations.filter(v => v.key !== "M9WCLN");
       }
-
+      if (window.history.state?.PUIT != "3") {
+         validations = validations.filter(v => v.key !== "MBSUWH");
+      }
 
 
 
@@ -1262,8 +1277,8 @@ export class InterfaceOFComponent implements OnInit {
          { key: 'WCLN', inputId: 'M9WCLN', colId: 'WCLN', dataset: this.respWCLN },
          { key: 'WHSL', inputId: 'MBWHSL', colId: 'WHSL', dataset: this.respWHSL },
          { key: 'ORTY', inputId: 'MBORTY', colId: 'ORTY', dataset: this.respORTY },
-         { key: 'CUCD', inputId: 'IFCUCD', colId: 'CUCD', dataset: this.respCUCD }
-
+         { key: 'CUCD', inputId: 'IFCUCD', colId: 'CUCD', dataset: this.respCUCD },
+         { key: 'SUWH', inputId: 'MBSUWH', colId: 'SUWH', dataset: this.respWHLO }
       ];
 
       fields.forEach(field => {
@@ -1309,8 +1324,7 @@ export class InterfaceOFComponent implements OnInit {
             'MMDIGI': 'MBRESP',
             'MBRESP': 'MBBUYE',
             'MBBUYE': 'MBSUNO',
-            'MBSUNO': 'MMGRTS',
-            'MMGRTS': 'M9WCLN',
+            'MBSUNO': 'M9WCLN',
             'M9WCLN': 'MBWHSL',
             'MBWHSL': "MBORTY",
             'MBORTY': "CREATELINE",
@@ -1390,10 +1404,9 @@ export class InterfaceOFComponent implements OnInit {
 
             'MMDIGI': 'MBRESP',
             'MBRESP': 'MBBUYE',
-            'MBBUYE': 'MBSUNO',
-            'MBSUNO': 'MMGRTS',
-            'MMGRTS': 'MBWHSL',
-            'MBWHSL': 'MBORTY',
+            'MBBUYE': 'MBWHSL',
+            'MBWHSL': 'MBSUWH',
+            'MBSUWH': 'MBORTY',
             'MBORTY': 'LMCD_GB_ITDS',
             'M9ACRF': 'MMITTY',
             'MMVTCP': "DELPIC",
@@ -1520,11 +1533,11 @@ export class InterfaceOFComponent implements OnInit {
       }
 
       //DIGI
-      value.DIGI = (this.formMITMAS.value.MMDIGI ?? '').toString().trim();
+      value.DIGI = (this.formMITMAS.value.MMDIGI ?? '')?.toString()?.trim();
 
       //IWID && ILEN
-      value.IWID = (this.formMITMAS.value.MMIWID ?? '0').toString().trim();
-      value.ILEN = (this.formMITMAS.value.MMILEN ?? '0').toString().trim();
+      value.IWID = (this.formMITMAS.value.MMIWID ?? '0')?.toString()?.trim();
+      value.ILEN = (this.formMITMAS.value.MMILEN ?? '0')?.toString()?.trim();
       return value;
    }
 
@@ -1543,7 +1556,7 @@ export class InterfaceOFComponent implements OnInit {
       value.ORTY = this.formMITBAL.value.MBORTY;
       value.PLCD = respItemWhs?.PLCD;
       value.PUIT = respItemWhs?.PUIT;
-      value.SUWH = respItemWhs?.SUWH;
+      value.SUWH = this.formMITBAL.value.MBSUWH;
       value.SATD = respItemWhs?.SATD;
       value.FACI = respItemWhs?.FACI;
       value.WHSL = this.formMITBAL.value.MBWHSL;
@@ -1606,6 +1619,7 @@ export class InterfaceOFComponent implements OnInit {
       value.ORCO = this.formMITMAS.value.M9ORCO;
       value.VAMT = this.formMITFAC.value.M9VAMT?.toString();
       value.REWH = valMitbal.WHLO;
+      value.WCLN = this.formMITBAL.value.M9WCLN;
       return value;
    }
    async valueMITVEN(): Promise<any> {

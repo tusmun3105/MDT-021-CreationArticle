@@ -32,6 +32,7 @@
       "MBSUNO": "Supplier",
       "MMGRTS": "Tech Grp Dist",
       "MBWHSL": "Location",
+      "MBSUWH": "Supplier Warehouse",
       "MBORTY": "Order type",
       "CREATELINE": "Create struct. line",
       "MBLEA1": "Lead Time"
@@ -168,8 +169,9 @@
       "MBSUNOOF": "Fournisseur (S/T)",
       "MBBUYE": "Acheteur",
       "MBSUNO": "Fournisseur",
-      "MMGRTS": "Classe grp techno",
+      "MMGRTS": "Tech Group Distri",
       "MBWHSL": "Emplacement",
+      "MBSUWH": "Dépôt Fournisseur",
       "MBORTY": "Type d'ordre",
       "CREATELINE": "Créa struct. ligne",
       "MBLEA1": "Délai appro"

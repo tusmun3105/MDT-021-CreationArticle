@@ -264,7 +264,7 @@
                      </span>
                   </tr>
 
-                  <tr>
+                  <tr [hidden]="hideFieldMITBALOD">
                      <td>
                         <label for="MBSUNO">
                            {{ this.puit == "1"
@@ -280,7 +280,7 @@
                         <span id="MBSUNOSelectedValue" class="selectedItem"></span>
                      </span>
                   </tr>
-                  <tr>
+                  <tr [hidden]="hideFieldMITVEN">
                      <td><label for="MMGRTS">{{ lang.get('MITBAL_FIELD_LABELS').MMGRTS }}</label></td>
                      <td><input type="text" id="MMGRTS" name="MMGRTS" formControlName="MMGRTS" class="lookup"
                            maxlength="5" /></td>
@@ -297,6 +297,12 @@
                      <td><input type="text" id="MBWHSL" name="MBWHSL" formControlName="MBWHSL" class="lookup"
                            maxlength="10" /></td>
                      <span><span id="MBWHSLSelectedValue" class="selectedItem"></span></span>
+                  </tr>
+                  <tr>
+                     <td><label for="MBSUWH">{{ lang.get('MITBAL_FIELD_LABELS').MBSUWH }}</label></td>
+                     <td><input type="text" id="MBSUWH" name="MBSUWH" formControlName="MBSUWH" class="lookup"
+                           maxlength="3" /></td>
+                     <span><span id="MBSUWHSelectedValue" class="selectedItem"></span></span>
                   </tr>
                   <tr>
                      <td><label for="MBORTY">{{ lang.get('MITBAL_FIELD_LABELS').MBORTY }}</label></td>

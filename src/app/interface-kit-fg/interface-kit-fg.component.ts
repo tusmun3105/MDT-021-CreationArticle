@@ -569,7 +569,7 @@ export class InterfaceKITFGComponent implements OnInit {
          const respCPY = await this.shared.call_MMS200_CpyItmBasic(input);
          this.copyItemBasicStepFG = true;//Progess Bar FG
          if (respCPY.length > 0 && !respCPY[0].error) {
-            this.shared.call_MMS200_UpdItmBasic(values.MMITNO, input.acrf); //update ACRF using this API since does not exist on prem
+            this.shared.call_MMS200_UpdItmBasic(values.MMITNO, input.acrf, "", ""); //update ACRF using this API since does not exist on prem
             this.copyItemBasicFG = "#icon-success";//Progess Bar FG
             this.shared.displaySuccessMessage(`${this.lang.get('ERROR_TYPE')['SUCCESS']}`, `${input.newItem} ${this.lang.get('ERROR_TYPE')['CREATED_WITH_SUCCESS']}`);
             const [respUpdPrice, respAddCUGEX, respUpdCUGEX] = await Promise.all([
@@ -795,7 +795,7 @@ export class InterfaceKITFGComponent implements OnInit {
 
          const respCPY = await this.shared.call_MMS200_CpyItmBasic(input)
          if (respCPY.length > 0 && !respCPY[0].error) {
-            this.shared.call_MMS200_UpdItmBasic(values.MMITNO, input.acrf); //update ACRF using this API since does not exist on prem
+            this.shared.call_MMS200_UpdItmBasic(values.MMITNO, input.acrf, "", ""); //update ACRF using this API since does not exist on prem
             this.iconCopyItemBasicKIT = "#icon-success"; //Progess Bar KIT
             this.shared.displaySuccessMessage(`${this.lang.get('ERROR_TYPE')['SUCCESS']}`, `${values.MMITNO} ${this.lang.get('ERROR_TYPE')['CREATED_WITH_SUCCESS']}`);
             this.copyItemFacilityKIT = true;  //Progess Bar KIT
