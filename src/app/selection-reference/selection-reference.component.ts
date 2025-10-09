@@ -23,7 +23,7 @@ export class SelectionReferenceComponent implements OnInit {
       // console.log("url", url);
       // const val = this.urlCheck(url);
       // console.log("val", val);
-      // const itno = "30000077ZZ";//val?.ITNO?.trim() || '';
+      // const itno = "12300001";//val?.ITNO?.trim() || '';
       // const whlo = "201";//val?.WHLO?.trim() || '';
       // let panel = "MMA002BC"; //val?.PANEL?.trim() || '';
       // const faci = "200";//val?.FACI?.trim() || '';

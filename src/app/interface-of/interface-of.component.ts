@@ -325,9 +325,36 @@ export class InterfaceOFComponent implements OnInit {
             MBORTY: itemWhsBasic?.ORTY || ""
          });
 
+         //Start of txtbloc logic
+         const respTXID = await this.shared.call_EXPORT_GetIDoFTextBlock(
+            itemWhsBasic?.SUNO?.trim() || "",
+            itemBasic?.ITNO?.trim());
+
+         let blockTXT = "";
+
+         if (respTXID.length > 0 && !respTXID.error) {
+            const txtblockID = respTXID[0]?.REPL?.trim();
+            if (txtblockID) {
+               const respTXIDLines = await this.shared.call_EXPORT_GetIDoFTextBlockLines(txtblockID);
+
+               if (respTXIDLines.length > 0 && !respTXIDLines[0].error) {
+                  // Extract line number and text, sort by line number, and join with newline
+                  blockTXT = respTXIDLines
+                     .map(line => {
+                        const [num, text] = line.REPL.split('◉');
+                        return { num: parseInt(num, 10), text: text || "" };
+                     })
+                     .sort((a, b) => a.num - b.num)
+                     .map(l => l.text)
+                     .join('\n');
+               }
+            }
+         }
+         //End of txtbloc logic
 
          this.formMITVEN.patchValue({
-            MBLEA1: itemWhsBasicLEA1?.REPL || ""
+            MBLEA1: itemWhsBasicLEA1?.REPL || "",
+            BLOCTXT: blockTXT
          });
          this.formMITFAC.patchValue({
             M9ACRF: itemFacBasic?.ACRF || "",
@@ -335,6 +362,7 @@ export class InterfaceOFComponent implements OnInit {
             MMITTY: itemBasic?.ITTY || "",
             MMVTCP: (itemBasic.VTCP ?? 0).toString().padStart(2, '0') || "00"
          });
+
          const setVAMT = $('#M9VAMT').data('dropdown');
          setVAMT?.setCode(this.formMITFAC.value?.M9VAMT);
 
@@ -758,7 +786,7 @@ export class InterfaceOFComponent implements OnInit {
 
                   if (respListCompoPDS002.length > 0 && !respListCompoPDS002[0].error) {
                      await Promise.all(
-                        respListCompoPDS002.map(item => this.shared.call_PDS002_CreateComponent(item, valueMITBAL?.newITNO?.trim(), valueMITBAL?.WHLO?.trim(), valueMITBAL?.WHSL?.trim()))
+                        respListCompoPDS002.map(item => this.shared.call_PDS002_CreateComponent(item, valueMITBAL?.newITNO?.trim(), valueMITBAL?.WHLO?.trim(), this.respItemBasicMMS002[0]?.WHSL || ""))
                      );
                   }
 
@@ -809,13 +837,20 @@ export class InterfaceOFComponent implements OnInit {
             this.PPS040 = true;
             const valMITVEN = await this.valueMITVEN();
             if (this.hideFieldMITVEN == false) {
-               const respPPS040 = await this.shared.call_PPS040_AddItemSupplier(value.newITNO, valueMITBAL.SUNO);
+               const respPPS040 = await this.shared.call_PPS040_AddItemSupplier(value.newITNO, valueMITBAL.SUNO, valMITVEN.PUPR, valMITVEN.PUCD, valMITVEN.UVDT);
                if (respPPS040.length > 0 && respPPS040[0].error) {
                   this.iconPPS040 = "#icon-rejected-solid";
                }
                else {
                   this.iconPPS040 = "#icon-success";
-                  const respUpdatePPS040 = await this.shared.call_PPS040_UpdItemSupplier(value.newITNO, valueMITBAL.SUNO, "1", "20", valueMITFAC.M9ORCO, valMITVEN.SITE, valMITVEN.SITT, valMITVEN.PUPR, valMITVEN.PUCD, valMITVEN.UVDT)
+                  const lines = valMITVEN.BLOCTXT?.split('\n') || [];
+                  if (lines.length && lines[lines.length - 1].trim() === '') {
+                     lines.pop();
+                  }
+                  const respUpdatePPS040 = await this.shared.call_PPS040_UpdItemSupplier(value.newITNO, valueMITBAL.SUNO, "1", "20", valueMITFAC.M9ORCO, valMITVEN.SITE, valMITVEN.SITT,);
+                  if (lines.length != 0) {
+                     const respAddTextBlockToSupplierItem = await this.shared.call_AddTextBlockToSupplierItem(value.newITNO, valueMITBAL.SUNO, lines);
+                  }
                }
             }
          }
@@ -1186,7 +1221,7 @@ export class InterfaceOFComponent implements OnInit {
          { key: "MMGRTS", list: this.respGRTS, field: "GRTS", label: this.lang.get("MITBAL_FIELD_LABELS").MMGRTS },
          { key: "M9WCLN", list: this.respWCLN, field: "WCLN", label: this.lang.get("MITFAC_FIELD_LABELS").M9WCLN },
          { key: "MBWHSL", list: this.respWHSL, field: "WHSL", label: this.lang.get("MITBAL_FIELD_LABELS").MBWHSL },
-         { key: "MBSUWH", list: this.respWHSL, field: "MBSUWH", label: this.lang.get("MITBAL_FIELD_LABELS").MBSUWH },
+         { key: "MBSUWH", list: this.respWHLO, field: "SUWH", label: this.lang.get("MITBAL_FIELD_LABELS").MBSUWH },
          { key: "M9ACRF", list: this.respACRF, field: "ACRF", label: this.lang.get("MITFAC_FIELD_LABELS").M9ACRF },
          { key: "MMITTY", list: this.respITTY, field: "ITTY", label: this.lang.get("MITMAS_FIELD_LABELS").MMITTY },
          { key: "MMVTCP", list: this.respVTCP, field: "VTCD", label: this.lang.get("MITMAS_FIELD_LABELS").MMVTCP },
@@ -1649,11 +1684,20 @@ export class InterfaceOFComponent implements OnInit {
       let value: any = {};
       value.SITE = this.formMITVEN.value.IFSITE?.toString();
       value.SITT = this.formMITVEN.value.IFSITT?.toString();
-      value.PUPR = this.formMITVEN.value.IFPUPR?.toString();
-      value.PUCD = this.formMITVEN.value.IFPUCD?.toString();
+      value.PUPR = this.formMITVEN.value.IFPUPR?.toString().trim();
+      if (!value.PUPR || value.PUPR === "?") {
+         value.PUPR = "0";
+      }
+
+      value.PUCD = this.formMITVEN.value.IFPUCD?.toString().trim();
+      if (!value.PUCD || value.PUCD === "?") {
+         value.PUCD = "0";
+      }
+
       value.UVDT = this.formMITVEN.value.IFUVDT?.toString();
       const yyyymmdd = (d: string) => d.split('/').reverse().join('');
       value.UVDT = yyyymmdd(value.UVDT);
+      value.BLOCTXT = this.formMITVEN.value.BLOCTXT?.toString()?.trim();
       return value;
    }
 
@@ -1792,6 +1836,44 @@ export class InterfaceOFComponent implements OnInit {
       this.PPS040 = false;
       this.iconPPS040 = "";
    }
+
+   handleInput(event: Event) {
+      const control = this.formMITVEN.get('BLOCTXT');
+      const textarea = event.target as HTMLTextAreaElement;
+      if (!control || !textarea) return;
+
+      let value = textarea.value || '';
+      let cursorPos = textarea.selectionStart;
+
+      const lines = value.split('\n');
+      const newLines: string[] = [];
+      let charsPassed = 0;
+
+      for (let line of lines) {
+         while (line.length > 60) {
+            newLines.push(line.slice(0, 60));
+            line = line.slice(60);
+            if (cursorPos > charsPassed + 60) {
+               charsPassed += 60;
+            } else {
+               // Cursor is in this line, set it at the end
+               cursorPos = newLines.join('\n').length + line.length + 1;
+            }
+         }
+         newLines.push(line);
+         charsPassed += line.length + 1;
+      }
+
+      const newValue = newLines.join('\n');
+      if (newValue !== value) {
+         control.setValue(newValue, { emitEvent: false });
+         textarea.value = newValue;
+         textarea.selectionStart = textarea.selectionEnd = cursorPos;
+      }
+   }
+
+
+
 
 
 }

@@ -1523,16 +1523,24 @@ export class SharedService {
 
    async call_PDS002_CreateOperation(input: any, newitno: string): Promise<any> {
       try {
+
          const inputRecord = new MIRecord();
          inputRecord.setString('CONO', this.userContext.currentCompany);
 
-         Object.keys(input).forEach(key => {
+         const allowedFields = ["FACI", "PRNO", "STRT", "OPNO", "PLGR", "OPDS", "PITI", "TOOL", "SUNO", "TXT1", "TXT2", "SUBC"];
+
+         allowedFields.forEach(key => {
             const value = input[key];
             if (value !== undefined && value !== null) {
                inputRecord.setString(key, String(value).trim());
+            } else {
+               inputRecord.setString(key, "");
             }
          });
+
          inputRecord.setString('PRNO', newitno);
+         inputRecord.setString('SDCD', "1");
+
          const request: IMIRequest = {
             program: 'PDS002MI',
             transaction: 'AddOperation',
@@ -1549,7 +1557,7 @@ export class SharedService {
       }
    }
 
-   async call_PPS040_AddItemSupplier(itno: string, suno: string): Promise<any> {
+   async call_PPS040_AddItemSupplier(itno: string, suno: string, pupr: string, pucd: string, uvdt: string): Promise<any> {
       try {
          const inputRecord = new MIRecord();
 
@@ -1558,8 +1566,19 @@ export class SharedService {
          inputRecord.setString('SUNO', suno);
          inputRecord.setString('QUCL', "A");
          inputRecord.setString('LCLV', "4");
+         inputRecord.setString('PUPR', pupr);
+         inputRecord.setString('PUCD', pucd);
+         // inputRecord.setString('FVDT', new Date().toISOString().slice(0, 10).replace(/-/g, ''));
 
-
+         // // UVDT logic: add 3 months if empty or "?"
+         // if (!uvdt || uvdt.trim() === "?") {
+         //    const currentDate = new Date();
+         //    currentDate.setMonth(currentDate.getMonth() + 3);
+         //    const uvdDateStr = currentDate.toISOString().slice(0, 10).replace(/-/g, '');
+         //    inputRecord.setString('UVDT', uvdDateStr);
+         // } else {
+         //    inputRecord.setString('UVDT', uvdt);
+         // }
 
          const request: IMIRequest = {
             program: 'PPS040MI',
@@ -1572,15 +1591,17 @@ export class SharedService {
          const response: IMIResponse = await this.miService.execute(request).toPromise();
 
          if (!response.hasError()) {
-            return response.items.length > 0 ? response.items : response.items;
+            return response.items.length > 0 ? response.items : [];
          } else {
             return [{ error: true, errorMessage: response.errorMessage }];
          }
       } catch (error) {
          console.error("Error:", error);
-         return [{ error: true, errorMessage: error }];
+         return [{ error: true, errorMessage: error instanceof Error ? error.message : String(error) }];
       }
    }
+
+
    async call_CRS620_GetSupplierCUCD(suno: string): Promise<any> {
       try {
          const inputRecord = new MIRecord();
@@ -1610,7 +1631,7 @@ export class SharedService {
          return [{ error: true, errorMessage: error }];
       }
    }
-   async call_PPS040_UpdItemSupplier(itno: string, suno: string, rtyp: string, isrs: string, orco: string, site: string, sitt: string, pupr: string, pucd: string, uvdt: string): Promise<any> {
+   async call_PPS040_UpdItemSupplier(itno: string, suno: string, rtyp: string, isrs: string, orco: string, site: string, sitt: string,): Promise<any> {
       try {
          const inputRecord = new MIRecord();
 
@@ -1622,14 +1643,6 @@ export class SharedService {
          inputRecord.setString('SITE', site);
          inputRecord.setString('SITT', sitt);
          inputRecord.setString('SITD', sitt);
-         inputRecord.setString('PUPR', pupr);
-         inputRecord.setString('PUCD', pucd);
-         inputRecord.setString('FVDT', new Date().toISOString().slice(0, 10).replace(/-/g, ''));
-         if (uvdt == "") {
-            inputRecord.setString('UVDT', new Date().toISOString().slice(0, 10).replace(/-/g, ''));
-         } else {
-            inputRecord.setString('UVDT', uvdt);
-         }
 
          const request: IMIRequest = {
             program: 'PPS040MI',
@@ -2238,4 +2251,230 @@ export class SharedService {
          }
       });
    }
+
+
+   // Get new Text ID (CRS980MI)
+   // 1. Get new Text ID
+   async call_CRS980_RtvNewTextID(): Promise<any> {
+      try {
+         const inputRecord = new MIRecord();
+         inputRecord.setString('CONO', this.userContext.currentCompany);
+         inputRecord.setString('FILE', 'MSYTXH');
+
+         const request: IMIRequest = {
+            program: 'CRS980MI',
+            transaction: 'RtvNewTextID',
+            record: inputRecord,
+            maxReturnedRecords: 0,
+            outputFields: ['TXID']
+         };
+
+         const response: IMIResponse = await this.miService.execute(request).toPromise();
+
+         if (!response.hasError()) {
+            return response.items.length > 0 ? response.items : [];
+         } else {
+            return [{ error: true, errorMessage: response.errorMessage }];
+         }
+      } catch (error) {
+         console.error("Error:", error);
+         return [{ error: true, errorMessage: error }];
+      }
+   }
+
+   // 2. Add Text Block Header
+   async call_CRS980_AddTxtBlockHead(txid: string, itno: string, suno: string): Promise<any> {
+      try {
+         const inputRecord = new MIRecord();
+         inputRecord.setString('TXID', txid);
+         inputRecord.setString('TXVR', 'COND');
+         inputRecord.setString('FILE', 'MITVEN00');
+
+         // Build KFLD: ITNO + spaces to 15 + SUNO + spaces to 10 + 4 spaces + 'N'
+         const kfld = itno.padEnd(15, ' ') + suno.padEnd(10, ' ') + '    N';
+         inputRecord.setString('KFLD', kfld);
+
+         inputRecord.setString('USID', this.userContext.USID);
+         inputRecord.setString('TFIL', 'MSYTXH');
+
+         const request: IMIRequest = {
+            program: 'CRS980MI',
+            transaction: 'AddTxtBlockHead',
+            record: inputRecord,
+            maxReturnedRecords: 0,
+            outputFields: []
+         };
+
+         const response: IMIResponse = await this.miService.execute(request).toPromise();
+
+         if (!response.hasError()) {
+            return response.items.length > 0 ? response.items : [];
+         } else {
+            return [{ error: true, errorMessage: response.errorMessage }];
+         }
+      } catch (error) {
+         console.error("Error:", error);
+         return [{ error: true, errorMessage: error }];
+      }
+   }
+
+   // 3. Add Text Block Line
+   async call_CRS980_AddTxtBlockLine(txid: string, line: string): Promise<any> {
+      try {
+         const inputRecord = new MIRecord();
+         inputRecord.setString('TXID', txid);
+         inputRecord.setString('TXVR', 'COND');
+         inputRecord.setString('TX60', line);
+         inputRecord.setString('TFIL', 'MSYTXH');
+         inputRecord.setString('FILE', 'MITVEN00');
+
+         const request: IMIRequest = {
+            program: 'CRS980MI',
+            transaction: 'AddTxtBlockLine',
+            record: inputRecord,
+            maxReturnedRecords: 0,
+            outputFields: []
+         };
+
+         const response: IMIResponse = await this.miService.execute(request).toPromise();
+
+         if (!response.hasError()) {
+            return response.items.length > 0 ? response.items : [];
+         } else {
+            return [{ error: true, errorMessage: response.errorMessage }];
+         }
+      } catch (error) {
+         console.error("Error:", error);
+         return [{ error: true, errorMessage: error }];
+      }
+   }
+
+   // 4. Link Text ID to Supplier-Item
+   async call_CRS980_SetTextID(txid: string, itno: string, suno: string): Promise<any> {
+      try {
+         const inputRecord = new MIRecord();
+         inputRecord.setString('FILE', 'MITVEN00');
+         inputRecord.setString('TXID', txid);
+         inputRecord.setString('KV01', this.userContext.currentCompany);
+         inputRecord.setString('KV02', itno);
+         inputRecord.setString('KV03', '');
+         inputRecord.setString('KV04', '');
+         inputRecord.setString('KV05', suno);
+
+         const request: IMIRequest = {
+            program: 'CRS980MI',
+            transaction: 'SetTextID',
+            record: inputRecord,
+            maxReturnedRecords: 0,
+            outputFields: []
+         };
+
+         const response: IMIResponse = await this.miService.execute(request).toPromise();
+
+         if (!response.hasError()) {
+            return response.items.length > 0 ? response.items : [];
+         } else {
+            return [{ error: true, errorMessage: response.errorMessage }];
+         }
+      } catch (error) {
+         console.error("Error:", error);
+         return [{ error: true, errorMessage: error }];
+      }
+   }
+
+   // 5. Wrapper: Add text block (header + lines + link)
+   async call_AddTextBlockToSupplierItem(itno: string, suno: string, lines: string[]): Promise<any> {
+      try {
+         const respNewTXID = await this.call_CRS980_RtvNewTextID();
+         if (respNewTXID.length > 0 && respNewTXID[0].error) return respNewTXID;
+
+         const txid = respNewTXID[0].TXID;
+
+         const respHead = await this.call_CRS980_AddTxtBlockHead(txid, itno, suno);
+         if (respHead.length > 0 && respHead[0].error) return respHead;
+
+         for (const line of lines) {
+            if (line && line.trim() !== '') {
+               const respLine = await this.call_CRS980_AddTxtBlockLine(txid, line);
+               if (respLine.length > 0 && respLine[0].error) return respLine;
+            }
+         }
+
+         const respLink = await this.call_CRS980_SetTextID(txid, itno, suno);
+         if (respLink.length > 0 && respLink[0].error) return respLink;
+
+         return [{ success: true, txid }];
+      } catch (error) {
+         console.error("Error:", error);
+         return [{ error: true, errorMessage: error }];
+      }
+   }
+
+   async call_EXPORT_GetIDoFTextBlock(suno: string, itno: string): Promise<any> {
+      try {
+         const inputRecord = new MIRecord();
+         inputRecord.setString('SEPC', "◉");
+         inputRecord.setString('HDRS', "0");
+         inputRecord.setString('QERY', `IFTXID from MITVEN where IFCONO = ${this.userContext.currentCompany} and IFSUNO = ${suno} and IFITNO = ${itno}`);
+
+         const request: IMIRequest = {
+            program: 'EXPORTMI',
+            transaction: 'Select',
+            record: inputRecord,
+            maxReturnedRecords: 0,
+            outputFields: ['REPL']
+
+         };
+
+         const response: IMIResponse = await this.miService.execute(request).toPromise();
+
+         if (!response.hasError()) {
+            if (response.items.length > 0) {
+               const items = response.items;
+               return items;
+            } else {
+               return response.items;
+            }
+         } else {
+            return [{ error: true, errorMessage: response.errorMessage }];
+         }
+      } catch (error) {
+         console.error("Error:", error);
+         return [{ error: true, errorMessage: error }];
+      }
+   }
+   async call_EXPORT_GetIDoFTextBlockLines(textid: string): Promise<any> {
+      try {
+         const inputRecord = new MIRecord();
+         inputRecord.setString('SEPC', "◉");
+         inputRecord.setString('HDRS', "0");
+         inputRecord.setString('QERY', `TLLINO, TLTX60 from MSYTXL where TLCONO = ${this.userContext.currentCompany} and TLTXID = ${textid}`);
+
+         const request: IMIRequest = {
+            program: 'EXPORTMI',
+            transaction: 'Select',
+            record: inputRecord,
+            maxReturnedRecords: 0,
+            outputFields: ['REPL']
+
+         };
+
+         const response: IMIResponse = await this.miService.execute(request).toPromise();
+
+         if (!response.hasError()) {
+            if (response.items.length > 0) {
+               const items = response.items;
+               return items;
+            } else {
+               return response.items;
+            }
+         } else {
+            return [{ error: true, errorMessage: response.errorMessage }];
+         }
+      } catch (error) {
+         console.error("Error:", error);
+         return [{ error: true, errorMessage: error }];
+      }
+   }
+
 }

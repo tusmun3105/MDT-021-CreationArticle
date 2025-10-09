@@ -377,10 +377,15 @@
                      </td>
                   </tr>
                   <tr>
-                     <td><label for="BLOCTXT">{{ lang.get('MITVEN_FIELD_LABELS').BLOCTXT }}</label></td>
-                     <td><textarea type="text" id="BLOCTXT" name="BLOCTXT" formControlName="BLOCTXT"
-                           class="textarea resizable" maxlength="60"></textarea></td>
+                     <td>
+                        <label for="BLOCTXT">{{ lang.get('MITVEN_FIELD_LABELS').BLOCTXT }}</label>
+                     </td>
+                     <td>
+                        <textarea id="BLOCTXT" name="BLOCTXT" formControlName="BLOCTXT" class="textarea resizable"
+                           cols="60" rows="5" wrap="soft" (input)="handleInput($event)"></textarea>
+                     </td>
                   </tr>
+
                </table>
             </form>
 

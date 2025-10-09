@@ -23,5 +23,9 @@
   { "Program": "PDS002MI", "Transaction": "Delete" },
   { "Program": "PPS040", "Transaction": "AddItemSupplier" },
   { "Program": "MMS059MI", "Transaction": "List" },
-  { "Program": "MMS059MI", "Transaction": "Add" }
+  { "Program": "MMS059MI", "Transaction": "Add" },
+  { "Program": "CRS980MI", "Transaction": "RtvNewTextID" },
+  { "Program": "CRS980MI", "Transaction": "AddTxtBlockHead" },
+  { "Program": "CRS980MI", "Transaction": "AddTxtBlockLine" },
+  { "Program": "CRS980MI", "Transaction": "SetTextID" }
 ]
