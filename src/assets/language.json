@@ -128,7 +128,8 @@
       "NO_CHARS_EAN13": "The number of characters in the EAN13 field must be 13",
       "NOT_VALID": "is not valid",
       "MANDATORY_FIELD": "is required",
-      "CREATED_WITH_SUCCESS": "was created successfully"
+      "CREATED_WITH_SUCCESS": "was created successfully",
+      "INVALID_DECIMAL": "Too many decimals, accept only"
     },
     "CORRECT_PANEL": {
       "WARNING": "Warning",
@@ -267,7 +268,8 @@
       "NO_CHARS_EAN13": "Le nombre de caractères du champ EAN13 doit être égal à 13",
       "NOT_VALID": "n’est pas valide",
       "MANDATORY_FIELD": "est obligatoire",
-      "CREATED_WITH_SUCCESS": "a été créé avec succès"
+      "CREATED_WITH_SUCCESS": "a été créé avec succès",
+      "INVALID_DECIMAL": "Trop de décimales, n'acceptez que"
     },
     "CORRECT_PANEL": {
       "WARNING": "Avertissement",

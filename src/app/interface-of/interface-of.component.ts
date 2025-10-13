@@ -786,13 +786,13 @@ export class InterfaceOFComponent implements OnInit {
 
                   if (respListCompoPDS002.length > 0 && !respListCompoPDS002[0].error) {
                      await Promise.all(
-                        respListCompoPDS002.map(item => this.shared.call_PDS002_CreateComponent(item, valueMITBAL?.newITNO?.trim(), valueMITBAL?.WHLO?.trim(), this.respItemBasicMMS002[0]?.WHSL || ""))
+                        respListCompoPDS002.map(item => this.shared.call_PDS002_CreateComponent(item, valueMITBAL?.newITNO?.trim(), valueMITBAL?.WHLO?.trim()))
                      );
                   }
 
                   if (respLstOperationPDS002.length > 0 && !respLstOperationPDS002[0].error) {
                      await Promise.all(
-                        respLstOperationPDS002.map(item => this.shared.call_PDS002_CreateOperation(item, valueMITBAL?.newITNO?.trim()))
+                        respLstOperationPDS002.map(item => this.shared.call_PDS002_CreateOperation(item, valueMITBAL?.newITNO?.trim(), valueMITBAL.SUNO))
                      );
                   }
 
@@ -1201,6 +1201,7 @@ export class InterfaceOFComponent implements OnInit {
 
          POP1: getValue(this.formMITPOP.value, "POP1"),
          POP2: getValue(this.formMITPOP.value, "POP2"),
+         PUPR: getValue(this.formMITVEN.value, "IFPUPR"),
       };
 
       // Validation mapping
@@ -1258,6 +1259,33 @@ export class InterfaceOFComponent implements OnInit {
          document.getElementById("MMITNO")?.focus();
          return { valid: false, itemBasic: {} };
       }
+
+      // decimal check
+      if (!isNaN(Number(values.PUPR)) && Number(values.PUPR) !== 0) {
+         const dccd = this.respItemBasicMMS001[0]?.PDCC?.trim(); // Expected decimal count from item master
+         const pupValue = values.PUPR.toString().trim();
+
+         if (dccd && /^\d+$/.test(dccd)) {
+            const expectedDecimals = parseInt(dccd, 10);
+
+            // Determine actual number of decimals in PUPR
+            const actualDecimals = pupValue.includes('.') ? pupValue.split('.')[1].length : 0;
+
+            // Show error only if actual decimals exceed allowed
+            if (actualDecimals > expectedDecimals) {
+               this.shared.displayErrorMessage(
+                  this.lang.get("ERROR_TYPE").ERROR,
+                  `${values.MMITNO} ${this.lang.get("ERROR_TYPE").INVALID_DECIMAL} ${expectedDecimals}`
+               );
+
+               document.getElementById("IFPUPR")?.focus();
+               return { valid: false, itemBasic: {} };
+            }
+
+         }
+      }
+
+
 
       // Run field validations
       for (const { key, list, field, label } of validations) {

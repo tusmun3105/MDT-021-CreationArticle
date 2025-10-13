@@ -1461,7 +1461,7 @@ export class SharedService {
          return [{ error: true, errorMessage: error }];
       }
    }
-   async call_PDS002_CreateComponent(input: any, newitno: string, whlo: string, whsl: string): Promise<any> {
+   async call_PDS002_CreateComponent(input: any, newitno: string, whlo: string): Promise<any> {
       try {
          const inputRecord = new MIRecord();
          inputRecord.setString('CONO', this.userContext.currentCompany);
@@ -1474,7 +1474,6 @@ export class SharedService {
          });
          inputRecord.setString('PRNO', newitno);
          inputRecord.setString('WHLO', whlo);
-         inputRecord.setString('WHSL', whsl);
 
          const request: IMIRequest = {
             program: 'PDS002MI',
@@ -1521,25 +1520,43 @@ export class SharedService {
       }
    }
 
-   async call_PDS002_CreateOperation(input: any, newitno: string): Promise<any> {
+   async call_PDS002_CreateOperation(input: any, newitno: string, supplier: string): Promise<any> {
       try {
-
          const inputRecord = new MIRecord();
          inputRecord.setString('CONO', this.userContext.currentCompany);
 
-         const allowedFields = ["FACI", "PRNO", "STRT", "OPNO", "PLGR", "OPDS", "PITI", "TOOL", "SUNO", "TXT1", "TXT2", "SUBC"];
+         const allowedFields = ["FACI", "PRNO", "STRT", "OPNO", "PLGR", "OPDS", "PITI", "TOOL", "SUNO", "TXT1", "TXT2", "SUBC", "AUIN"];
 
          allowedFields.forEach(key => {
             const value = input[key];
-            if (value !== undefined && value !== null) {
-               inputRecord.setString(key, String(value).trim());
-            } else {
-               inputRecord.setString(key, "");
-            }
+            inputRecord.setString(key, value !== undefined && value !== null ? String(value).trim() : "");
          });
 
          inputRecord.setString('PRNO', newitno);
          inputRecord.setString('SDCD', "1");
+         const suno = input["SUNO"]?.toString().trim() || "";
+         const plgr = input["PLGR"]?.toString().trim() || "";
+         const faci = input["FACI"]?.toString().trim() || "";
+         const prno = input["PRNO"]?.toString().trim() || "";
+         const opno = input["OPNO"]?.toString().trim() || "";
+         const strt = input["STRT"]?.toString().trim() || "";
+         const respPDS002Op = await this.call_PDS002_GetOperationTXT(faci, prno, strt, opno);
+         if (respPDS002Op.length > 0 && !respPDS002Op[0].error) {
+            inputRecord.setString("TXT1", respPDS002Op[0]?.TXT1?.trim());
+            inputRecord.setString("TXT2", respPDS002Op[0]?.TXT2?.trim());
+            inputRecord.setString("AUIN", respPDS002Op[0]?.AUIN?.trim());
+         }
+         const respPDS010 = await this.call_PDS010_Get(faci, plgr);
+         let pltp = "";
+         if (respPDS010.length > 0 && !respPDS010[0].error) {
+            pltp = respPDS010[0]?.pltp?.trim() || "";
+         }
+
+         if (suno !== supplier?.trim() || pltp === "2") {
+            inputRecord.setString("SUNO", supplier?.trim());
+         } else {
+            inputRecord.setString("SUNO", suno);
+         }
 
          const request: IMIRequest = {
             program: 'PDS002MI',
@@ -1557,10 +1574,70 @@ export class SharedService {
       }
    }
 
+
+   async call_PDS010_Get(faci: string, plgr: string): Promise<any> {
+      try {
+         const inputRecord = new MIRecord();
+
+         inputRecord.setString('FACI', faci);
+         inputRecord.setString('PLGR', plgr);
+
+
+         const request: IMIRequest = {
+            program: 'PDS010MI',
+            transaction: 'Get',
+            record: inputRecord,
+            maxReturnedRecords: 0,
+            outputFields: ['PLTP']
+         };
+
+         const response: IMIResponse = await this.miService.execute(request).toPromise();
+
+         if (!response.hasError()) {
+            return response.items.length > 0 ? response.items : response.items;
+         } else {
+            return [{ error: true, errorMessage: response.errorMessage }];
+         }
+      } catch (error) {
+         console.error("Error:", error);
+         return [{ error: true, errorMessage: error }];
+      }
+   }
+   async call_PDS002_GetOperationTXT(faci: string, prno: string, strt: string, opno: string): Promise<any> {
+      try {
+         const inputRecord = new MIRecord();
+
+         inputRecord.setString('FACI', faci);
+         inputRecord.setString('PRNO', prno);
+         inputRecord.setString('STRT', strt);
+         inputRecord.setString('OPNO', opno);
+
+         const request: IMIRequest = {
+            program: 'PDS002MI',
+            transaction: 'GetOperation',
+            record: inputRecord,
+            maxReturnedRecords: 0,
+            outputFields: ['TXT1', 'TXT2', 'AUIN']
+         };
+
+         const response: IMIResponse = await this.miService.execute(request).toPromise();
+
+         if (!response.hasError()) {
+            return response.items.length > 0 ? response.items : response.items;
+         } else {
+            return [{ error: true, errorMessage: response.errorMessage }];
+         }
+      } catch (error) {
+         console.error("Error:", error);
+         return [{ error: true, errorMessage: error }];
+      }
+   }
+
    async call_PPS040_AddItemSupplier(itno: string, suno: string, pupr: string, pucd: string, uvdt: string): Promise<any> {
       try {
          const inputRecord = new MIRecord();
 
+         // Set basic required fields
          inputRecord.setString('CONO', this.userContext.currentCompany);
          inputRecord.setString('ITNO', itno);
          inputRecord.setString('SUNO', suno);
@@ -1568,18 +1645,27 @@ export class SharedService {
          inputRecord.setString('LCLV', "4");
          inputRecord.setString('PUPR', pupr);
          inputRecord.setString('PUCD', pucd);
-         // inputRecord.setString('FVDT', new Date().toISOString().slice(0, 10).replace(/-/g, ''));
 
-         // // UVDT logic: add 3 months if empty or "?"
-         // if (!uvdt || uvdt.trim() === "?") {
-         //    const currentDate = new Date();
-         //    currentDate.setMonth(currentDate.getMonth() + 3);
-         //    const uvdDateStr = currentDate.toISOString().slice(0, 10).replace(/-/g, '');
-         //    inputRecord.setString('UVDT', uvdDateStr);
-         // } else {
-         //    inputRecord.setString('UVDT', uvdt);
-         // }
+         // Check if PUPR is a valid number and not zero
+         if (!isNaN(Number(pupr)) && Number(pupr) !== 0) {
+            // Set FVDT (valid from date) to today's date in YYYYMMDD format
+            const fvdt = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+            inputRecord.setString('FVDT', fvdt);
 
+            // Handle UVDT (valid until date)
+            if (!uvdt || uvdt.trim() === "?") {
+               // If UVDT is missing or unknown, set it to 3 months from today
+               const currentDate = new Date();
+               currentDate.setMonth(currentDate.getMonth() + 3);
+               const uvdDateStr = currentDate.toISOString().slice(0, 10).replace(/-/g, '');
+               inputRecord.setString('UVDT', uvdDateStr);
+            } else {
+               // Otherwise, use the provided UVDT
+               inputRecord.setString('UVDT', uvdt);
+            }
+         }
+
+         // Prepare and send MI request
          const request: IMIRequest = {
             program: 'PPS040MI',
             transaction: 'AddItemSupplier',
@@ -1600,6 +1686,7 @@ export class SharedService {
          return [{ error: true, errorMessage: error instanceof Error ? error.message : String(error) }];
       }
    }
+
 
 
    async call_CRS620_GetSupplierCUCD(suno: string): Promise<any> {

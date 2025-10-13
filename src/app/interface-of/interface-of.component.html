@@ -357,10 +357,11 @@
                         <label for="IFPUCD">{{ lang.get('MITVEN_FIELD_LABELS').IFPUCD }}</label>
                      </td>
                      <td>
-                        <input type="number" id="IFPUCD" name="IFPUCD" formControlName="IFPUCD" class="lookup" min="0"
-                           step="0.01" />
+                        <input type="number" id="IFPUCD" name="IFPUCD" formControlName="IFPUCD" min="0" max="99999"
+                           step="1" class="lookup" />
                      </td>
                   </tr>
+
 
                   <tr>
                      <td><label for="IFCUCD">{{ lang.get('MITVEN_FIELD_LABELS').IFCUCD }}</label></td>
