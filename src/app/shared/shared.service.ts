@@ -1552,7 +1552,7 @@ export class SharedService {
             pltp = respPDS010[0]?.pltp?.trim() || "";
          }
 
-         if (suno !== supplier?.trim() || pltp === "2") {
+         if (suno !== supplier?.trim() && pltp === "2") {
             inputRecord.setString("SUNO", supplier?.trim());
          } else {
             inputRecord.setString("SUNO", suno);
@@ -1633,7 +1633,7 @@ export class SharedService {
       }
    }
 
-   async call_PPS040_AddItemSupplier(itno: string, suno: string, pupr: string, pucd: string, uvdt: string): Promise<any> {
+   async call_PPS040_AddItemSupplier(itno: string, suno: string, pupr: string, pucd: string, uvdt: string, buyer: string): Promise<any> {
       try {
          const inputRecord = new MIRecord();
 
@@ -1664,7 +1664,7 @@ export class SharedService {
                inputRecord.setString('UVDT', uvdt);
             }
          }
-
+         inputRecord.setString('RESP', buyer);
          // Prepare and send MI request
          const request: IMIRequest = {
             program: 'PPS040MI',
@@ -1703,7 +1703,7 @@ export class SharedService {
             transaction: 'GetBasicData',
             record: inputRecord,
             maxReturnedRecords: 0,
-            outputFields: ['CUCD']
+            outputFields: ['CUCD', 'BUYE']
          };
 
          const response: IMIResponse = await this.miService.execute(request).toPromise();

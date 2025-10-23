@@ -49,8 +49,8 @@
       "M9WCLN": "Production Line"
     },
     "CUGEX_FIELD_LABELS": {
-      "DELPIC": "Std Lead Time",
-      "DELGAM": "Prod Lead Time"
+      "DELPIC": "PIC Lead Time",
+      "DELGAM": "CdP Lead Time"
     },
     "CECOCI_FIELD_LABELS": {
       "CIECRG": "Eco-Organism",
@@ -189,8 +189,8 @@
       "M9WCLN": "Ligne Prod"
     },
     "CUGEX_FIELD_LABELS": {
-      "DELPIC": "Délai Std",
-      "DELGAM": "Délai Prod"
+      "DELPIC": "Délai PIC",
+      "DELGAM": "Délai CdP"
     },
     "CECOCI_FIELD_LABELS": {
       "CIECRG": "Eco-Organisme",

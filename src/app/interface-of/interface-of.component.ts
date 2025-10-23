@@ -837,7 +837,12 @@ export class InterfaceOFComponent implements OnInit {
             this.PPS040 = true;
             const valMITVEN = await this.valueMITVEN();
             if (this.hideFieldMITVEN == false) {
-               const respPPS040 = await this.shared.call_PPS040_AddItemSupplier(value.newITNO, valueMITBAL.SUNO, valMITVEN.PUPR, valMITVEN.PUCD, valMITVEN.UVDT);
+               const respSuppBUYE = await this.shared.call_CRS620_GetSupplierCUCD(valueMITBAL.SUNO);
+               let buyer = "";
+               if (respSuppBUYE.length > 0 && !respSuppBUYE[0].error) {
+                  buyer = respSuppBUYE[0]?.BUYE;
+               }
+               const respPPS040 = await this.shared.call_PPS040_AddItemSupplier(value.newITNO, valueMITBAL.SUNO, valMITVEN.PUPR, valMITVEN.PUCD, valMITVEN.UVDT, buyer);
                if (respPPS040.length > 0 && respPPS040[0].error) {
                   this.iconPPS040 = "#icon-rejected-solid";
                }

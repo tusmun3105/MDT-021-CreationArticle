@@ -22,6 +22,7 @@
   { "Program": "PDS002MI", "Transaction": "AddOperation" },
   { "Program": "PDS002MI", "Transaction": "Delete" },
   { "Program": "PPS040", "Transaction": "AddItemSupplier" },
+  { "Program": "CRS620MI", "Transaction": "GetBasicData" },
   { "Program": "MMS059MI", "Transaction": "List" },
   { "Program": "MMS059MI", "Transaction": "Add" },
   { "Program": "CRS980MI", "Transaction": "RtvNewTextID" },
