@@ -245,16 +245,15 @@ export class InterfaceOFComponent implements OnInit {
          const supportedLangs = ["GB", "DE", "PL", "NL", "PT", "ES", "FR"];
          for (const item of this.respMMS030) {
             const lang = item?.LNCD;
-            const refTtem = item?.ITNO?.trim();
-            if (supportedLangs.includes(lang) && refTtem == window.history.state.ITNOREF?.trim()) {
+            if (supportedLangs.includes(lang)) {
                this.formMITLAD.patchValue({
                   [`LMCD_${lang}_ITDS`]: item?.ITDS || "",
                   [`LMCD_${lang}_FUDS`]: item?.FUDS || "",
                });
             }
          }
-
       }
+
       if (this.respItemBasicMMS002.length > 0) {
          const faci = this.respItemBasicMMS002[0]?.FACI || '';
          const itnoref = window.history.state?.ITNOREF || '';
