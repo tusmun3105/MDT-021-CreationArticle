@@ -141,7 +141,7 @@ export class InterfaceKITFGComponent implements OnInit {
          this.shared.call_CUSEXT_GetFieldValue("MITMAS", window.history.state.ITNOREF),
          this.shared.call_MMS200_GetItmBasicMissing(`MMDIGI, MMACRF from MITMAS where MMITNO = ${window.history.state.ITNOREF}`),
          this.shared.call_MMS200_GetItmFac(window.history.state.FACI, window.history.state.ITNOREF),
-         this.shared.call_MMS030_List(window.history.state.ITNOREF)
+         this.shared.call_MMS200_LstItmDescLang(window.history.state.ITNOREF)
       ]);
 
       //Retrieve Language for Item description

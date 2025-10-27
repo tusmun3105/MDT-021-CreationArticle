@@ -235,7 +235,7 @@ export class InterfaceOFComponent implements OnInit {
          this.shared.call_CUSEXT_GetFieldValue("MITMAS", window.history.state.ITNOREF),
          this.shared.call_ListECO_Product(`CIECRG, CIECRG, CIECOP from CECOCI where CICONO = ${this.shared.userContext.currentCompany} and CIITNO = ${window.history.state.ITNOREF} and CICSOR = FR`),
          this.shared.call_MMS200_GetItmBasicMissing(`MMDIGI from MITMAS where MMITNO = ${window.history.state.ITNOREF}`),
-         this.shared.call_MMS030_List(window.history.state.ITNOREF),
+         this.shared.call_MMS200_LstItmDescLang(window.history.state.ITNOREF),
          this.shared.call_EXPORT_LEA1(window.history.state?.WHLO, window.history.state?.ITNOREF)
       ]);
 

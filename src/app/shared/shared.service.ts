@@ -388,16 +388,18 @@ export class SharedService {
          return [{ error: true, errorMessage: error }];
       }
    }
-   async call_MMS030_List(itno: string) {
+   async call_MMS200_LstItmDescLang(itno: string) {
       try {
          const inputRecord = new MIRecord();
-         inputRecord.setString('ITNO', itno);
+         inputRecord.setString('FITN', itno);
+         inputRecord.setString('TITN', itno);
+
          const request: IMIRequest = {
-            program: 'MMS030MI',
-            transaction: 'List',
+            program: 'MMS200MI',
+            transaction: 'LstItmDescLang',
             record: inputRecord,
             maxReturnedRecords: 0,
-            outputFields: []
+            outputFields: ['ITDS', 'FUDS', 'LNCD']
 
          };
 
@@ -1549,13 +1551,14 @@ export class SharedService {
          const respPDS010 = await this.call_PDS010_Get(faci, plgr);
          let pltp = "";
          if (respPDS010.length > 0 && !respPDS010[0].error) {
-            pltp = respPDS010[0]?.pltp?.trim() || "";
+            pltp = respPDS010[0]?.PLTP?.trim() || "";
          }
 
+         //suno=>PDS002 and supplier=>interface
          if (suno !== supplier?.trim() && pltp === "2") {
             inputRecord.setString("SUNO", supplier?.trim());
          } else {
-            inputRecord.setString("SUNO", suno);
+            inputRecord.setString("SUNO", "");
          }
 
          const request: IMIRequest = {
