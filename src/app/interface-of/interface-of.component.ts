@@ -724,7 +724,7 @@ export class InterfaceOFComponent implements OnInit {
                recordFound = respMMS059_List.find(
                   (rec: any) =>
                      rec.SPLM?.toString()?.trim() == "ADV1" &&
-                     rec.PREX?.toString()?.trim() == "4" &&
+                     // rec.PREX?.toString()?.trim() == "4" &&
                      rec.SPLA?.toString()?.trim() == "1" &&
                      rec.OBV1?.toString()?.trim() == valueMITBAL.refModelArticle?.trim()
                );
