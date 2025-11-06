@@ -716,28 +716,36 @@ export class InterfaceOFComponent implements OnInit {
 
          // ************************     MMS059     ************************ \\
          this.MMS059 = true;
+
          if (this.formMITNWL.value.LDF) {
             const respMMS059_List = await this.shared.call_MMS059_List("ADV1");
-            let recordFound: any;
 
             if (respMMS059_List.length > 0 && !respMMS059_List[0].error) {
-               recordFound = respMMS059_List.find(
+               // Get all matching records
+               const matchingRecords = respMMS059_List.filter(
                   (rec: any) =>
-                     rec.SPLM?.toString()?.trim() == "ADV1" &&
-                     // rec.PREX?.toString()?.trim() == "4" &&
-                     rec.SPLA?.toString()?.trim() == "1" &&
-                     rec.OBV1?.toString()?.trim() == valueMITBAL.refModelArticle?.trim()
+                     rec.SPLM?.toString()?.trim() === "ADV1" &&
+                     // rec.PREX?.toString()?.trim() === "4" &&
+                     rec.SPLA?.toString()?.trim() === "1" &&
+                     rec.OBV1?.toString()?.trim() === valueMITBAL.refModelArticle?.trim()
                );
-               if (recordFound) {
-                  const orty = valueMITBAL?.ORTY || "";
-                  const newORTY = orty.startsWith("ITJ") ? "240" : "200";
-                  const respMMS059Aadd = await this.shared.call_MMS059_Add(recordFound, value.newITNO, newORTY);
-                  if (respMMS059Aadd.length > 0 && respMMS059Aadd[0].error) {
-                     this.iconMMS059 = "#icon-rejected-solid";
+
+               if (matchingRecords.length > 0) {
+                  let allSuccess = true;
+
+                  for (const record of matchingRecords) {
+                     const orty = valueMITBAL?.ORTY || "";
+                     const newORTY = orty.startsWith("ITJ") ? "240" : "200";
+
+                     const respMMS059Aadd = await this.shared.call_MMS059_Add(record, value.newITNO, newORTY);
+
+                     if (respMMS059Aadd.length > 0 && respMMS059Aadd[0].error) {
+                        allSuccess = false;
+                     }
                   }
-                  else {
-                     this.iconMMS059 = "#icon-success";
-                  }
+
+                  // Set icon based on overall result
+                  this.iconMMS059 = allSuccess ? "#icon-success" : "#icon-rejected-solid";
                } else {
                   this.iconMMS059 = "#icon-rejected-solid";
                }
