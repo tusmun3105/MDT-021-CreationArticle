@@ -1475,7 +1475,9 @@ export class SharedService {
             }
          });
          inputRecord.setString('PRNO', newitno);
-         inputRecord.setString('WHLO', whlo);
+         inputRecord.setString('DSP5', "1");
+         inputRecord.setString('DSP6', "1");
+         // inputRecord.setString('WHLO', whlo);
 
          const request: IMIRequest = {
             program: 'PDS002MI',
@@ -2565,6 +2567,20 @@ export class SharedService {
          console.error("Error:", error);
          return [{ error: true, errorMessage: error }];
       }
+   }
+
+   preventIncrementing_N_DecrementingVal() {
+      // Grab all number inputs inside this component
+      const numberInputs = document.querySelectorAll<HTMLInputElement>('input[type="number"]');
+
+      numberInputs.forEach(input => {
+         input.addEventListener('wheel', (event) => event.preventDefault());
+         input.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+               event.preventDefault();
+            }
+         });
+      });
    }
 
 }

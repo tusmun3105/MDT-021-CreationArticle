@@ -191,6 +191,7 @@ export class InterfaceOFComponent implements OnInit {
    iconPDS002: string = "";
    PPS040 = false;
    iconPPS040: string = "";
+
    constructor(public lang: LanguageService, private shared: SharedService, private elRef: ElementRef, private renderer: Renderer2, private router: Router, private appService: ApplicationService) { }
 
 
@@ -199,7 +200,7 @@ export class InterfaceOFComponent implements OnInit {
       await this.setPageTitle();
       this.onTab();
       this.initializeLookups();
-
+      this.shared.preventIncrementing_N_DecrementingVal();
 
       //Fetch CUCD from CRS624 when SUNO changes
       this.formMITBAL.get('MBSUNO')?.valueChanges
@@ -301,7 +302,8 @@ export class InterfaceOFComponent implements OnInit {
             MMSTAT: "10",
             MMITDS: itemBasic?.ITDS || "",
             MMFUDS: itemBasic?.FUDS || "",
-            MMPRGP: itemBasic?.PRGP || "",
+            // MMPRGP: itemBasic?.PRGP || "",
+            MMPRGP: this.whlo,
             MMWAPC: itemBasic?.WAPC || "",
             MMILEN: itemBasic?.ILEN || "",
             MMIWID: itemBasic?.IWID || "",
@@ -514,367 +516,273 @@ export class InterfaceOFComponent implements OnInit {
    async onsubmit() {
       this.resetProgressBar();
       this.isBusyForm = true;
-      console.log("this.formMITMAS.value", this.formMITMAS.value)
-      console.log("this.formMITFAC.value", this.formMITFAC.value)
-      console.log("this.formMITBAL.value", this.formMITBAL.value)
-      console.log("this.formMITLAD.value", this.formMITLAD.value)
-      console.log("this.formMITPOP.value", this.formMITPOP.value)
-      console.log("this.formCUGEX.value", this.formCUGEX.value)
-      console.log("this.formMITVEN.value", this.formMITVEN.value)
+
+      console.log("this.formMITMAS.value", this.formMITMAS.value);
+      console.log("this.formMITFAC.value", this.formMITFAC.value);
+      console.log("this.formMITBAL.value", this.formMITBAL.value);
+      console.log("this.formMITLAD.value", this.formMITLAD.value);
+      console.log("this.formMITPOP.value", this.formMITPOP.value);
+      console.log("this.formCUGEX.value", this.formCUGEX.value);
+      console.log("this.formMITVEN.value", this.formMITVEN.value);
+
       await this.updateLookupCIECOP();
+
+      // ================= VALIDATION =================
       this.validateField = true;
       const isValid = await this.validateFields();
+
       if (!isValid?.valid) {
          this.isBusyForm = false;
          this.iconValidateField = "#icon-rejected-solid";
          return;
-      } else {
-         this.iconValidateField = "#icon-success";
       }
 
+      this.iconValidateField = "#icon-success";
+
+      // ================= PREPARE VALUES =================
       const value = await this.valueMITMAS();
       const delpic = this.formCUGEX.value.DELPIC;
       const delgam = "0";
       const delchef = this.formCUGEX.value.DELGAM;
+
+      // ================= STEP 1 — COPY ITEM =================
       const respCPY = await this.shared.call_MMS200_CpyItmBasicOF(value);
       this.MMS001_CUGEX = true;
-      if (respCPY.length > 0 && !respCPY[0].error) {
-         this.iconMMS001_CUGEX = "#icon-success";
-         //     ************************     After Item creation update Basic info/ Update price// add/upd CUGEX MITMAS     ************************     \\
-         // 1 Run first call
-         const respUpdateACRF = await this.shared.call_MMS200_UpdItmBasic(
-            value.newITNO,
-            value.ACRF,
-            value.ILEN,
-            value.IWID
-         );
 
-         // 2 Run second call (waits for first)
-         const respUpdateDIGI = await this.shared.call_MMS200_UpdItmPrice(
-            value.newITNO,
-            value.DIGI
-         );
-
-         // 3 Run the remaining calls simultaneously
-         const [respAddCugexMitmas, respChgCugexMitmas] = await Promise.all([
-            this.shared.call_CUSEXT_AddFieldValue(
-               "MITMAS",
-               value.newITNO,
-               delpic?.toString(),
-               delgam?.toString(),
-               delchef?.toString(),
-               ""
-            ),
-            this.shared.call_CUSEXT_ChgieldValue(
-               "MITMAS",
-               value.newITNO,
-               delpic?.toString(),
-               delgam?.toString(),
-               delchef?.toString(),
-               ""
-            )
-         ]);
-
-         this.shared.displaySuccessMessage(`${this.lang.get('ERROR_TYPE')['SUCCESS']}`, `${value.newITNO} ${this.lang.get('ERROR_TYPE')['CREATED_WITH_SUCCESS']}`);
-
-         //     ************************     MMS030 - MITLAD     ************************     \\
-         this.MMS030 = true;
-         const values_MITLAD = {
-            LMCD_GB_ITDS: (this.formMITLAD.value.LMCD_GB_ITDS ?? '').toString().trim(),
-            LMCD_GB_FUDS: (() => {
-               const itds = (this.formMITLAD.value.LMCD_GB_ITDS ?? '').toString().trim();
-               const fuds = (this.formMITLAD.value.LMCD_GB_FUDS ?? '').toString().trim();
-               return !fuds && itds ? itds : fuds;
-            })(),
-            LMCD_DE_ITDS: (this.formMITLAD.value.LMCD_DE_ITDS ?? '').toString().trim(),
-            LMCD_DE_FUDS: (() => {
-               const itds = (this.formMITLAD.value.LMCD_DE_ITDS ?? '').toString().trim();
-               const fuds = (this.formMITLAD.value.LMCD_DE_FUDS ?? '').toString().trim();
-               return !fuds && itds ? itds : fuds;
-            })(),
-            LMCD_PL_ITDS: (this.formMITLAD.value.LMCD_PL_ITDS ?? '').toString().trim(),
-            LMCD_PL_FUDS: (() => {
-               const itds = (this.formMITLAD.value.LMCD_PL_ITDS ?? '').toString().trim();
-               const fuds = (this.formMITLAD.value.LMCD_PL_FUDS ?? '').toString().trim();
-               return !fuds && itds ? itds : fuds;
-            })(),
-            LMCD_NL_ITDS: (this.formMITLAD.value.LMCD_NL_ITDS ?? '').toString().trim(),
-            LMCD_NL_FUDS: (() => {
-               const itds = (this.formMITLAD.value.LMCD_NL_ITDS ?? '').toString().trim();
-               const fuds = (this.formMITLAD.value.LMCD_NL_FUDS ?? '').toString().trim();
-               return !fuds && itds ? itds : fuds;
-            })(),
-            LMCD_PT_ITDS: (this.formMITLAD.value.LMCD_PT_ITDS ?? '').toString().trim(),
-            LMCD_PT_FUDS: (() => {
-               const itds = (this.formMITLAD.value.LMCD_PT_ITDS ?? '').toString().trim();
-               const fuds = (this.formMITLAD.value.LMCD_PT_FUDS ?? '').toString().trim();
-               return !fuds && itds ? itds : fuds;
-            })(),
-            LMCD_ES_ITDS: (this.formMITLAD.value.LMCD_ES_ITDS ?? '').toString().trim(),
-            LMCD_ES_FUDS: (() => {
-               const itds = (this.formMITLAD.value.LMCD_ES_ITDS ?? '').toString().trim();
-               const fuds = (this.formMITLAD.value.LMCD_ES_FUDS ?? '').toString().trim();
-               return !fuds && itds ? itds : fuds;
-            })(),
-            LMCD_FR_ITDS: (this.formMITLAD.value.LMCD_FR_ITDS ?? '').toString().trim(),
-            LMCD_FR_FUDS: (() => {
-               const itds = (this.formMITLAD.value.LMCD_FR_ITDS ?? '').toString().trim();
-               const fuds = (this.formMITLAD.value.LMCD_FR_FUDS ?? '').toString().trim();
-               return !fuds && itds ? itds : fuds;
-            })(),
-         };
-
-         const countries = ['GB', 'DE', 'PL', 'NL', 'PT', 'ES', 'FR'];
-
-         const promises = countries
-            .filter(code => values_MITLAD[`LMCD_${code}_ITDS`]?.trim() !== '')
-            .map(code => {
-               const itds = values_MITLAD[`LMCD_${code}_ITDS`];
-               const fud = values_MITLAD[`LMCD_${code}_FUDS`];
-               return this.shared.call_MMS030_Add(value.newITNO, code, itds, fud);
-            });
-
-         await Promise.all(promises);
-         this.iconMMS030 = "#icon-success"
-
-         //     ************************     Item Alias - MMS025     ************************     \\
-         this.MMS025_CUGEX = true;
-         const values_MITPOP = {
-            POP1: (this.formMITPOP.value.POP1 ?? '').toString().trim(),
-            POP2: (this.formMITPOP.value.POP2 ?? '').toString().trim(),
-         }
-
-         const aliases = [
-            { type: '1', value: values_MITPOP.POP1, qualifier: '' },
-            { type: '2', value: values_MITPOP.POP2, qualifier: 'EA13 ' }
-         ];
-
-         const popPromises = aliases
-            .filter(alias => alias.value !== '')
-            .map(alias => this.shared.call_MMS025_AddAlias(alias.type, value.newITNO, alias.value, alias.qualifier));
-
-         const respAlias = await Promise.all(popPromises);
-         this.iconMMS025_CUGEX = "#icon-success";
-
-         //     ************************     Add CUGEX MITPOP     ************************     \\
-         const popCUGEXPromisesAdd = aliases
-            .filter(alias => alias.value !== '')
-            .map(alias => this.shared.call_CUSEXT_AddFieldValue("MITPOP", value.newITNO, alias.type, alias.qualifier, alias.value, this.shared.userContext.currentDivision));
-
-         await Promise.all(popCUGEXPromisesAdd);
-
-         const popCUGEXPromisesChg = aliases
-            .filter(alias => alias.value !== '')
-            .map(alias => this.shared.call_CUSEXT_ChgieldValue("MITPOP", value.newITNO, alias.type, alias.qualifier, alias.value, this.shared.userContext.currentDivision));
-
-         await Promise.all(popCUGEXPromisesChg);
-
-         //     ************************     ENS025     ************************     \\
-         this.ENS025 = true;
-         if (this.formMITMAS.value.CIECRG?.trim() != "" && this.formMITMAS.value.CIECOP?.trim() != "") {
-            await this.launchENS025Create(this.formMITMAS.value.CIECRG, this.formMITMAS.value.CIECOP, this.formMITMAS.value.MMITNO.toUpperCase());
-         }
-         this.iconENS025 = "#icon-success";
-
-         //     ************************     Creation of Item in Depot/Facility Supplier for all interfaces     ************************     \\
-         const valueMITBAL = await this.valueMITBAL();
-         const puit = window.history.state?.PUIT;
-         if (puit == "3" && valueMITBAL.SUWH != "") {
-            const respWhsSupp = await this.shared.call_MMS200_CpyItmWhsOF_Supplier(valueMITBAL);
-         }
-         //     ************************     Creation of Item in Depot/Facility Client for all interfaces     ************************     \\
-         let valueMITFAC = await this.valueMITFAC(valueMITBAL);
-
-         this.MMS002 = true;
-         const respWhsClient = await this.shared.call_MMS200_CpyItmWhsOF_Client(valueMITBAL, value);
-         if (respWhsClient.length > 0 && respWhsClient[0].error) {
-            this.iconMMS002 = "#icon-rejected-solid";
-         }
-         else {
-            const lea1Value = this.formMITVEN.value.MBLEA1?.toString()?.trim() || "0";
-            const respWhsLEA1 = await this.shared.call_MMS200_UpdItmWhsBasicLEA1(
-               window.history.state?.WHLO,
-               value.newITNO,
-               lea1Value
-            );
-            this.MMS003 = true;
-            const respECCC = await this.shared.call_MMS200_GetItmFac(valueMITBAL?.FACI, valueMITBAL?.refModelArticle);
-            valueMITFAC.ECCC = "";
-            if (respECCC.length > 0 && !respECCC[0].error) {
-               valueMITFAC.ECCC = respECCC[0]?.ECCC;
-            }
-            const respFaciClient = await this.shared.call_MMS200_UpdItmFacOF_Client(valueMITBAL, valueMITFAC);
-            if (respFaciClient.length > 0 && respFaciClient[0].error) {
-               this.iconMMS003 = "#icon-rejected-solid";
-            }
-            else {
-               this.iconMMS003 = "#icon-success";
-            }
-            this.iconMMS002 = "#icon-success";
-         }
-
-
-         // ************************     MMS059     ************************ \\
-         this.MMS059 = true;
-
-         if (this.formMITNWL.value.LDF) {
-            const respMMS059_List = await this.shared.call_MMS059_List("ADV1");
-
-            if (respMMS059_List.length > 0 && !respMMS059_List[0].error) {
-               // Get all matching records
-               const matchingRecords = respMMS059_List.filter(
-                  (rec: any) =>
-                     rec.SPLM?.toString()?.trim() === "ADV1" &&
-                     // rec.PREX?.toString()?.trim() === "4" &&
-                     rec.SPLA?.toString()?.trim() === "1" &&
-                     rec.OBV1?.toString()?.trim() === valueMITBAL.refModelArticle?.trim()
-               );
-
-               if (matchingRecords.length > 0) {
-                  let allSuccess = true;
-
-                  for (const record of matchingRecords) {
-                     const orty = valueMITBAL?.ORTY || "";
-                     const newORTY = orty.startsWith("ITJ") ? "240" : "200";
-
-                     const respMMS059Aadd = await this.shared.call_MMS059_Add(record, value.newITNO, newORTY);
-
-                     if (respMMS059Aadd.length > 0 && respMMS059Aadd[0].error) {
-                        allSuccess = false;
-                     }
-                  }
-
-                  // Set icon based on overall result
-                  this.iconMMS059 = allSuccess ? "#icon-success" : "#icon-rejected-solid";
-               } else {
-                  this.iconMMS059 = "#icon-rejected-solid";
-               }
-            }
-         } else {
-            this.iconMMS059 = "#icon-success";
-         }
-
-         // ************************     PDS001     ************************ \\
-         if (window.history.state?.PUIT == "1") {
-            this.PDS001 = true;
-            await this.launchPDS001Copy(valueMITBAL?.FACI?.trim(), valueMITBAL?.refModelArticle, "STD", valueMITBAL?.newITNO?.trim());
-            await new Promise(resolve => setTimeout(resolve, 2500));
-            const respCheckPDS001 = await this.shared.call_PDS001_GetProductStructure(valueMITBAL?.FACI?.trim(), valueMITBAL?.newITNO?.trim(), "STD");
-            if (respCheckPDS001.length > 0 && !respCheckPDS001[0].error) {
-               this.iconPDS001 = "#icon-success";
-               const dcon = value?.CHCD === "1" ? "1" : "0";
-
-               const respUpdatePDS001 = await this.shared.call_PDS001_Update(
-                  valueMITBAL?.FACI?.trim(),
-                  valueMITBAL?.newITNO?.trim(),
-                  "10",
-                  "STD",
-                  value?.RESP,
-                  value?.DWNO,
-                  dcon
-               );
-
-               // ************************     PDS002     ************************ \\
-               this.PDS002 = true;
-               if (this.formMITBAL.value.CREATELINE) {
-                  this.PDS002 = true;
-
-                  const respListCompoPDS002 = await this.shared.call_PDS002_LstComponent(
-                     valueMITBAL?.FACI?.trim(),
-                     window.history.state?.ITNOREF,
-                     "STD"
-                  );
-
-                  const respLstOperationPDS002 = await this.shared.call_PDS002_LstOperation(
-                     valueMITBAL?.FACI?.trim(),
-                     window.history.state?.ITNOREF,
-                     "STD"
-                  );
-
-                  if (respListCompoPDS002.length > 0 && !respListCompoPDS002[0].error) {
-                     await Promise.all(
-                        respListCompoPDS002.map(item => this.shared.call_PDS002_CreateComponent(item, valueMITBAL?.newITNO?.trim(), valueMITBAL?.WHLO?.trim()))
-                     );
-                  }
-
-                  if (respLstOperationPDS002.length > 0 && !respLstOperationPDS002[0].error) {
-                     await Promise.all(
-                        respLstOperationPDS002.map(item => this.shared.call_PDS002_CreateOperation(item, valueMITBAL?.newITNO?.trim(), valueMITBAL.SUNO))
-                     );
-                  }
-
-               } else {
-                  // ************************     PDS002 -Delete Mats & Ops   ************************ \\
-                  this.PDS002 = true;
-
-                  const respListCompoPDS002 = await this.shared.call_PDS002_LstComponent(
-                     valueMITBAL?.FACI?.trim(),
-                     window.history.state?.ITNOREF,
-                     "STD"
-                  );
-
-                  const respLstOperationPDS002 = await this.shared.call_PDS002_LstOperation(
-                     valueMITBAL?.FACI?.trim(),
-                     window.history.state?.ITNOREF,
-                     "STD"
-                  );
-
-                  if (respListCompoPDS002.length > 0 && !respListCompoPDS002[0].error) {
-                     await Promise.all(
-                        respListCompoPDS002.map(item => this.shared.call_PDS002_DeleteCompoNOperation(item, valueMITBAL?.newITNO?.trim()))
-                     );
-                  }
-
-                  if (respLstOperationPDS002.length > 0 && !respLstOperationPDS002[0].error) {
-                     await Promise.all(
-                        respLstOperationPDS002.map(item => this.shared.call_PDS002_DeleteCompoNOperation(item, valueMITBAL?.newITNO?.trim()))
-                     );
-                  }
-               }
-               this.iconPDS002 = "#icon-success";
-            }
-            else {
-               this.iconPDS001 = "#icon-rejected-solid";
-               this.PDS002 = true;
-               this.iconPDS002 = "#icon-rejected-solid";
-            }
-         }
-         // ************************     PPS040    ************************ \\
-         if (window.history.state?.PUIT == "2") {
-            this.PPS040 = true;
-            const valMITVEN = await this.valueMITVEN();
-            if (this.hideFieldMITVEN == false) {
-               const respSuppBUYE = await this.shared.call_CRS620_GetSupplierCUCD(valueMITBAL.SUNO);
-               let buyer = "";
-               if (respSuppBUYE.length > 0 && !respSuppBUYE[0].error) {
-                  buyer = respSuppBUYE[0]?.BUYE;
-               }
-               const respPPS040 = await this.shared.call_PPS040_AddItemSupplier(value.newITNO, valueMITBAL.SUNO, valMITVEN.PUPR, valMITVEN.PUCD, valMITVEN.UVDT, buyer);
-               if (respPPS040.length > 0 && respPPS040[0].error) {
-                  this.iconPPS040 = "#icon-rejected-solid";
-               }
-               else {
-                  this.iconPPS040 = "#icon-success";
-                  const lines = valMITVEN.BLOCTXT?.split('\n') || [];
-                  if (lines.length && lines[lines.length - 1].trim() === '') {
-                     lines.pop();
-                  }
-                  const respUpdatePPS040 = await this.shared.call_PPS040_UpdItemSupplier(value.newITNO, valueMITBAL.SUNO, "1", "20", valueMITFAC.M9ORCO, valMITVEN.SITE, valMITVEN.SITT,);
-                  if (lines.length != 0) {
-                     const respAddTextBlockToSupplierItem = await this.shared.call_AddTextBlockToSupplierItem(value.newITNO, valueMITBAL.SUNO, lines);
-                  }
-               }
-            }
-         }
-         this.isBusyForm = false;
-      }
-      else {
-         this.shared.displayErrorMessage(`${this.lang.get('ERROR_TYPE')['ERROR']}`, respCPY[0].errorMessage.errorMessage);
+      if (!(respCPY.length > 0 && !respCPY[0].error)) {
+         this.shared.displayErrorMessage(`${this.lang.get('ERROR_TYPE')['ERROR']}`, respCPY?.[0]?.errorMessage?.errorMessage);
          this.iconMMS001_CUGEX = "#icon-rejected-solid";
          this.isBusyForm = false;
          return;
       }
+
+      this.iconMMS001_CUGEX = "#icon-success";
+
+      // ================= STEP 2 — WAIT UNTIL ITEM EXISTS (RETRY 10x) =================
+      let respWaitItemToExist: any[] = [];
+      let retry = 0;
+
+      while (retry < 10) {
+         respWaitItemToExist = await this.shared.call_MMS200_GetItem(value.newITNO);
+         if (respWaitItemToExist.length > 0 && !respWaitItemToExist[0].error) break;
+         await new Promise(resolve => setTimeout(resolve, 500));
+         retry++;
+      }
+
+      if (!(respWaitItemToExist.length > 0 && !respWaitItemToExist[0].error)) {
+         console.error(`${value.newITNO} NOT_FOUND_AFTER_COPY`);
+         this.isBusyForm = false;
+         return;
+      }
+
+      // ================= STEP 3 — UPDATE BASIC / PRICE / CUGEX =================
+      await this.shared.call_MMS200_UpdItmBasic(value.newITNO, value.ACRF, value.ILEN, value.IWID);
+      await this.shared.call_MMS200_UpdItmPrice(value.newITNO, value.DIGI);
+
+      await Promise.all([
+         this.shared.call_CUSEXT_AddFieldValue("MITMAS", value.newITNO, delpic?.toString(), delgam?.toString(), delchef?.toString(), ""),
+         this.shared.call_CUSEXT_ChgieldValue("MITMAS", value.newITNO, delpic?.toString(), delgam?.toString(), delchef?.toString(), "")
+      ]);
+
+      this.shared.displaySuccessMessage(`${this.lang.get('ERROR_TYPE')['SUCCESS']}`, `${value.newITNO} ${this.lang.get('ERROR_TYPE')['CREATED_WITH_SUCCESS']}`);
+
+      // ================= STEP 4 — MMS030 =================
+      this.MMS030 = true;
+
+      const countries = ["GB", "DE", "PL", "NL", "PT", "ES", "FR"];
+
+      await Promise.all(
+         countries
+            .map(code => ({
+               code,
+               itds: (this.formMITLAD.value[`LMCD_${code}_ITDS`] ?? "").toString().trim(),
+               fuds: (() => { const i = (this.formMITLAD.value[`LMCD_${code}_ITDS`] ?? "").toString().trim(); const f = (this.formMITLAD.value[`LMCD_${code}_FUDS`] ?? "").toString().trim(); return !f && i ? i : f; })()
+            }))
+            .filter(v => v.itds !== "")
+            .map(v => this.shared.call_MMS030_Add(value.newITNO, v.code, v.itds, v.fuds))
+      );
+
+      this.iconMMS030 = "#icon-success";
+
+      // ================= STEP 5 — MMS025 + CUGEX MITPOP =================
+      this.MMS025_CUGEX = true;
+
+      const aliases = [
+         { type: "1", value: (this.formMITPOP.value.POP1 ?? "").toString().trim(), qualifier: "" },
+         { type: "2", value: (this.formMITPOP.value.POP2 ?? "").toString().trim(), qualifier: "EA13 " }
+      ];
+
+      await Promise.all(aliases.filter(a => a.value !== "").map(a => this.shared.call_MMS025_AddAlias(a.type, value.newITNO, a.value, a.qualifier)));
+      await Promise.all(aliases.filter(a => a.value !== "").map(a => this.shared.call_CUSEXT_AddFieldValue("MITPOP", value.newITNO, a.type, a.qualifier, a.value, this.shared.userContext.currentDivision)));
+      await Promise.all(aliases.filter(a => a.value !== "").map(a => this.shared.call_CUSEXT_ChgieldValue("MITPOP", value.newITNO, a.type, a.qualifier, a.value, this.shared.userContext.currentDivision)));
+
+      this.iconMMS025_CUGEX = "#icon-success";
+
+      // ================= STEP 6 — ENS025 =================
+      this.ENS025 = true;
+
+      if (this.formMITMAS.value.CIECRG?.trim() !== "" && this.formMITMAS.value.CIECOP?.trim() !== "") {
+         await this.launchENS025Create(this.formMITMAS.value.CIECRG, this.formMITMAS.value.CIECOP, this.formMITMAS.value.MMITNO.toUpperCase());
+      }
+
+      this.iconENS025 = "#icon-success";
+
+      // ================= STEP 7 — WAREHOUSE / FACILITY =================
+      const valueMITBAL = await this.valueMITBAL();
+      const puit = window.history.state?.PUIT;
+
+      if (puit === "3" && valueMITBAL.SUWH !== "") {
+         await this.shared.call_MMS200_CpyItmWhsOF_Supplier(valueMITBAL);
+      }
+
+      let valueMITFAC = await this.valueMITFAC(valueMITBAL);
+
+      this.MMS002 = true;
+
+      const respWhsClient = await this.shared.call_MMS200_CpyItmWhsOF_Client(valueMITBAL, value);
+
+      if (respWhsClient.length > 0 && respWhsClient[0].error) {
+         this.iconMMS002 = "#icon-rejected-solid";
+         this.MMS003 = true;
+         this.iconMMS003 = "#icon-rejected-solid";
+      } else {
+         const lea1Value = this.formMITVEN.value.MBLEA1?.toString()?.trim() || "0";
+         await this.shared.call_MMS200_UpdItmWhsBasicLEA1(window.history.state?.WHLO, value.newITNO, lea1Value);
+
+         this.MMS003 = true;
+
+         const respECCC = await this.shared.call_MMS200_GetItmFac(valueMITBAL?.FACI, valueMITBAL?.refModelArticle);
+         valueMITFAC.ECCC = respECCC.length > 0 && !respECCC[0].error ? respECCC[0]?.ECCC : "";
+
+         const respFaciClient = await this.shared.call_MMS200_UpdItmFacOF_Client(valueMITBAL, valueMITFAC);
+
+         this.iconMMS003 = respFaciClient.length > 0 && respFaciClient[0].error ? "#icon-rejected-solid" : "#icon-success";
+         this.iconMMS002 = "#icon-success";
+      }
+
+
+      // ================= MMS059 =================
+      this.MMS059 = true;
+
+      if (this.formMITNWL.value.LDF) {
+         const respMMS059_List = await this.shared.call_MMS059_List("ADV1");
+
+         if (respMMS059_List.length > 0 && !respMMS059_List[0].error) {
+            // Filter matching records
+            const matchingRecords = respMMS059_List.filter((rec: any) =>
+               rec.SPLM?.toString()?.trim() === "ADV1" &&
+               rec.SPLA?.toString()?.trim() === "1" &&
+               rec.OBV1?.toString()?.trim() === valueMITBAL.refModelArticle?.trim()
+            );
+
+            if (matchingRecords.length > 0) {
+               let allSuccess = true;
+
+               for (const record of matchingRecords) {
+                  const orty = valueMITBAL?.ORTY || "";
+                  const newORTY = orty.startsWith("ITJ") ? "240" : "200";
+
+                  const respMMS059Add = await this.shared.call_MMS059_Add(record, value.newITNO, newORTY);
+
+                  if (respMMS059Add.length > 0 && respMMS059Add[0].error) {
+                     allSuccess = false;
+                  }
+               }
+
+               // Set icon based on overall success
+               this.iconMMS059 = allSuccess ? "#icon-success" : "#icon-rejected-solid";
+            } else {
+               this.iconMMS059 = "#icon-rejected-solid";
+            }
+         } else {
+            this.iconMMS059 = "#icon-rejected-solid";
+         }
+      } else {
+         // No LDF, consider success
+         this.iconMMS059 = "#icon-success";
+      }
+
+      // ================= PDS001 / PDS002 =================
+      if (window.history.state?.PUIT === "1") {
+         this.PDS001 = true;
+
+         await this.launchPDS001Copy(valueMITBAL?.FACI?.trim(), valueMITBAL?.refModelArticle, "STD", valueMITBAL?.newITNO?.trim());
+         await new Promise(resolve => setTimeout(resolve, 2500));
+
+         const respCheckPDS001 = await this.shared.call_PDS001_GetProductStructure(valueMITBAL?.FACI?.trim(), valueMITBAL?.newITNO?.trim(), "STD");
+
+         if (respCheckPDS001.length > 0 && !respCheckPDS001[0].error) {
+            this.iconPDS001 = "#icon-success";
+
+            const dcon = value?.CHCD === "1" ? "1" : "0";
+
+            await this.shared.call_PDS001_Update(valueMITBAL?.FACI?.trim(), valueMITBAL?.newITNO?.trim(), "10", "STD", value?.RESP, value?.DWNO, dcon);
+
+            // ---------- PDS002 ----------
+            this.PDS002 = true;
+
+            const respListCompo = await this.shared.call_PDS002_LstComponent(valueMITBAL?.FACI?.trim(), window.history.state?.ITNOREF, "STD");
+            const respListOper = await this.shared.call_PDS002_LstOperation(valueMITBAL?.FACI?.trim(), window.history.state?.ITNOREF, "STD");
+
+            if (this.formMITBAL.value.CREATELINE) {
+               if (respListCompo.length > 0 && !respListCompo[0].error) {
+                  await Promise.all(respListCompo.map(item => this.shared.call_PDS002_CreateComponent(item, valueMITBAL?.newITNO?.trim(), valueMITBAL?.WHLO?.trim())));
+               }
+
+               if (respListOper.length > 0 && !respListOper[0].error) {
+                  await Promise.all(respListOper.map(item => this.shared.call_PDS002_CreateOperation(item, valueMITBAL?.newITNO?.trim(), valueMITBAL?.SUNO)));
+               }
+            } else {
+               if (respListCompo.length > 0 && !respListCompo[0].error) {
+                  await Promise.all(respListCompo.map(item => this.shared.call_PDS002_DeleteCompoNOperation(item, valueMITBAL?.newITNO?.trim())));
+               }
+
+               if (respListOper.length > 0 && !respListOper[0].error) {
+                  await Promise.all(respListOper.map(item => this.shared.call_PDS002_DeleteCompoNOperation(item, valueMITBAL?.newITNO?.trim())));
+               }
+            }
+
+            this.iconPDS002 = "#icon-success";
+         } else {
+            this.iconPDS001 = "#icon-rejected-solid";
+            this.PDS002 = true;
+            this.iconPDS002 = "#icon-rejected-solid";
+         }
+      }
+
+
+      // ================= PPS040 =================
+      if (window.history.state?.PUIT === "2") {
+         this.PPS040 = true;
+
+         if (this.hideFieldMITVEN === false) {
+            const valMITVEN = await this.valueMITVEN();
+
+            const respSuppBUYE = await this.shared.call_CRS620_GetSupplierCUCD(valueMITBAL.SUNO);
+            let buyer = respSuppBUYE.length > 0 && !respSuppBUYE[0].error ? respSuppBUYE[0]?.BUYE : "";
+
+            const respPPS040 = await this.shared.call_PPS040_AddItemSupplier(value.newITNO, valueMITBAL.SUNO, valMITVEN.PUPR, valMITVEN.PUCD, valMITVEN.UVDT, buyer);
+
+            if (respPPS040.length > 0 && respPPS040[0].error) {
+               this.iconPPS040 = "#icon-rejected-solid";
+            } else {
+               this.iconPPS040 = "#icon-success";
+
+               const lines = (valMITVEN.BLOCTXT?.split("\n") || []).filter(l => l.trim() !== "");
+
+               await this.shared.call_PPS040_UpdItemSupplier(value.newITNO, valueMITBAL.SUNO, "1", "20", valueMITFAC.M9ORCO, valMITVEN.SITE, valMITVEN.SITT);
+
+               if (lines.length > 0) {
+                  await this.shared.call_AddTextBlockToSupplierItem(value.newITNO, valueMITBAL.SUNO, lines);
+               }
+            }
+         }
+      }
+
+      // ================= FINAL =================
+      this.isBusyForm = false;
    }
+
 
    initializeLookups() {
       const columnNamesMitmas = this.lang.get('MITMAS_FIELD_LABELS');
@@ -1589,9 +1497,9 @@ export class InterfaceOFComponent implements OnInit {
       value.VTCP = this.formMITFAC.value.MMITTY === "J00" ? "00" : this.formMITFAC.value.MMVTCP ?? "00";
 
       // VTCS = conditional assignment based on SALE and STCD
-      if (respItemBasic?.SALE === 1 && respItemBasic?.STCD === 1) {
-         value.VTCS = "0";
-      } else if (respItemBasic?.SALE === 0) {
+      if (respItemBasic?.SALE === "1" && respItemBasic?.STCD === "1") {
+         value.VTCS = "1";
+      } else if (respItemBasic?.SALE === "0") {
          value.VTCS = "0";
       } else {
          value.VTCS = "0";

@@ -3,6 +3,7 @@ import { LanguageService } from '../shared/language.service';
 import { SharedService } from '../shared/shared.service';
 import { FormGroup, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
+import { ApplicationService } from '@infor-up/m3-odin-angular';
 
 @Component({
    selector: 'app-interface-kit-fg',
@@ -47,6 +48,7 @@ export class InterfaceKITFGComponent implements OnInit {
       MMGRWE: new FormControl(''),
       MMCFI3: new FormControl(''),
       MMDIGI: new FormControl(''),
+      CREATELINEKIT: new FormControl(true),
    });
    formMITLAD = new FormGroup({
       LMCD_GB_ITDS: new FormControl(''),
@@ -93,6 +95,7 @@ export class InterfaceKITFGComponent implements OnInit {
    iconLanguageFG: string = "";
    hideFieldMITFAC: boolean = false;
    hideFieldMITLAD: boolean = false;
+   hideFieldMPDHED: boolean = false;
    hideFieldCUGEX: boolean = false;
    iconAliasFG: string = "";
    aliasFG = false;
@@ -112,22 +115,28 @@ export class InterfaceKITFGComponent implements OnInit {
    iconCUGEX1KIT: string = "";
    iconLanguageKIT: string = "";
    iconAliasKIT: string = "";
+   PDS001 = false;
+   iconPDS001: string = "";
+   PDS002 = false;
+   iconPDS002: string = "";
 
    respItemBasicSelectedItem = {};
    respItemFaci = {};
    referenceModel: string = "";
 
-   constructor(public lang: LanguageService, private shared: SharedService, private elRef: ElementRef, private renderer: Renderer2, private router: Router) { }
+   constructor(public lang: LanguageService, private shared: SharedService, private elRef: ElementRef, private renderer: Renderer2, private router: Router, private appService: ApplicationService) { }
 
    async ngOnInit(): Promise<void> {
       this.onTab();
       this.initializeLookups();
+      this.shared.preventIncrementing_N_DecrementingVal();
       this.pageTitle = window.history.state.Title;
       if (this.pageTitle != "KIT") {
          this.setupCustomTabNavigation();//tabulation
 
          //Hide field CUGEX and MITFAC if FG
          this.hideFieldMITFAC = true;
+         this.hideFieldMPDHED = true;
          this.hideFieldCUGEX = true;
 
          this.referenceModel = this.lang.get('REFERENCE_MODEL')['FG'];
@@ -564,70 +573,54 @@ export class InterfaceKITFGComponent implements OnInit {
             input.tpcd = respTPCD[0]?.REPL;
          }
 
-         // final call
-         const respCPY = await this.shared.call_MMS200_CpyItmBasic(input);
-         this.copyItemBasicStepFG = true;//Progess Bar FG
+         // --- Final call: copy item basic ---
+         const respCPY = await this.shared.call_MMS200_CpyItmBasic(input); this.copyItemBasicStepFG = true; // Progess Bar FG
+
          if (respCPY.length > 0 && !respCPY[0].error) {
-            await this.shared.call_MMS200_UpdItmBasic(values.MMITNO, input.acrf, "", ""); //update ACRF using this API since does not exist on prem
-            this.copyItemBasicFG = "#icon-success";//Progess Bar FG
-            this.shared.displaySuccessMessage(`${this.lang.get('ERROR_TYPE')['SUCCESS']}`, `${input.newItem} ${this.lang.get('ERROR_TYPE')['CREATED_WITH_SUCCESS']}`);
-            const [respUpdPrice, respAddCUGEX, respUpdCUGEX] = await Promise.all([
-               this.shared.call_MMS200_UpdItmPrice(values.MMITNO, values.MMDIGI),
-               this.shared.call_CUSEXT_AddFieldValue("MITMAS", input.newItem, input.delpic?.toString(), input.delgam?.toString(), input.delchef?.toString(), ""),
-               this.shared.call_CUSEXT_ChgieldValue("MITMAS", input.newItem, input.delpic?.toString(), input.delgam?.toString(), input.delchef?.toString(), "")
-            ]);
-            this.iconUpdatePriceFG = "#icon-success";//Progess Bar FG
-            this.updateItemBasicStepFG = true;//Progess Bar FG
-
-
-
-            this.languageFG = true;//Progess Bar FG
-            const countries = ['GB', 'DE', 'PL', 'NL', 'PT', 'ES', 'FR'];
-
-            const promises = countries
-               .filter(code => values[`LMCD_${code}_ITDS`]?.trim() !== '')
-               .map(code => {
-                  const itds = values[`LMCD_${code}_ITDS`];
-                  const fud = values[`LMCD_${code}_FUDS`];
-                  return this.shared.call_MMS030_Add(input.newItem, code, itds, fud);
-               });
-
-            await Promise.all(promises);
-            this.iconLanguageFG = "#icon-success";//Progess Bar FG
-
-            // Create Item Alias
-            this.aliasFG = true;//Progess Bar FG
-            this.iconAliasFG = "#icon-success";//Progess Bar FG
-
-            const aliases = [
-               { type: '1', value: values.POP1, qualifier: '' },
-               { type: '2', value: values.POP2, qualifier: 'EA13 ' }
-            ];
-
-            const popPromises = aliases
-               .filter(alias => alias.value !== '')
-               .map(alias => this.shared.call_MMS025_AddAlias(alias.type, values.MMITNO, alias.value, alias.qualifier));
-
-            const respAlias = await Promise.all(popPromises);
-
-            if (respAlias.some(result => result[0]?.error)) {
-               this.iconAliasFG = "#icon-rejected-solid";//Progess Bar FG
+            // --- Retry check: wait until the copied item exists, max 10 attempts ---
+            const maxRetry = 10; let itemExists = false;
+            for (let attempt = 1; attempt <= maxRetry; attempt++) {
+               const resp = await this.shared.call_MMS200_GetItem(values.MMITNO);
+               if (resp.length > 0 && !resp[0].error) { itemExists = true; break; }
+               else if (attempt < maxRetry) { await new Promise(resolve => setTimeout(resolve, 500)); }
             }
-            //Add CUGEX MITPOP
-            const popCUGEXPromisesAdd = aliases
-               .filter(alias => alias.value !== '')
-               .map(alias => this.shared.call_CUSEXT_AddFieldValue("MITPOP", values.MMITNO, alias.type, alias.qualifier, alias.value, this.shared.userContext.currentDivision));
 
-            await Promise.all(popCUGEXPromisesAdd);
+            if (itemExists) {
+               // --- Update ACRF since it does not exist on prem ---
+               await this.shared.call_MMS200_UpdItmBasic(values.MMITNO, input.acrf, "", ""); this.copyItemBasicFG = "#icon-success"; // Progess Bar FG
+               this.shared.displaySuccessMessage(`${this.lang.get('ERROR_TYPE')['SUCCESS']}`, `${input.newItem} ${this.lang.get('ERROR_TYPE')['CREATED_WITH_SUCCESS']}`);
 
-            const popCUGEXPromisesChg = aliases
-               .filter(alias => alias.value !== '')
-               .map(alias => this.shared.call_CUSEXT_ChgieldValue("MITPOP", values.MMITNO, alias.type, alias.qualifier, alias.value, this.shared.userContext.currentDivision));
+               // --- Update price and additional fields in parallel ---
+               const [respUpdPrice, respAddCUGEX, respUpdCUGEX] = await Promise.all([
+                  this.shared.call_MMS200_UpdItmPrice(values.MMITNO, values.MMDIGI),
+                  this.shared.call_CUSEXT_AddFieldValue("MITMAS", input.newItem, input.delpic?.toString(), input.delgam?.toString(), input.delchef?.toString(), ""),
+                  this.shared.call_CUSEXT_ChgieldValue("MITMAS", input.newItem, input.delpic?.toString(), input.delgam?.toString(), input.delchef?.toString(), "")
+               ]); this.iconUpdatePriceFG = "#icon-success"; this.updateItemBasicStepFG = true; // Progess Bar FG
 
-            await Promise.all(popCUGEXPromisesChg);
-            //End Add CUGEX MITPOP
+               // --- Update country-specific language data ---
+               this.languageFG = true; const countries = ['GB', 'DE', 'PL', 'NL', 'PT', 'ES', 'FR'];
+               const languagePromises = countries.filter(code => values[`LMCD_${code}_ITDS`]?.trim() !== '').map(code => this.shared.call_MMS030_Add(input.newItem, code, values[`LMCD_${code}_ITDS`], values[`LMCD_${code}_FUDS`]));
+               await Promise.all(languagePromises); this.iconLanguageFG = "#icon-success"; // Progess Bar FG
 
+               // --- Create Item Aliases ---
+               this.aliasFG = true; this.iconAliasFG = "#icon-success"; // Progess Bar FG
+               const aliases = [{ type: '1', value: values.POP1, qualifier: '' }, { type: '2', value: values.POP2, qualifier: 'EA13 ' }];
+               const aliasPromises = aliases.filter(alias => alias.value !== '').map(alias => this.shared.call_MMS025_AddAlias(alias.type, values.MMITNO, alias.value, alias.qualifier));
+               const respAlias = await Promise.all(aliasPromises);
+               if (respAlias.some(result => result[0]?.error)) { this.iconAliasFG = "#icon-rejected-solid"; } // Progess Bar FG
+
+               // --- Add CUGEX MITPOP entries ---
+               const popCUGEXPromisesAdd = aliases.filter(alias => alias.value !== '').map(alias => this.shared.call_CUSEXT_AddFieldValue("MITPOP", values.MMITNO, alias.type, alias.qualifier, alias.value, this.shared.userContext.currentDivision));
+               await Promise.all(popCUGEXPromisesAdd);
+               const popCUGEXPromisesChg = aliases.filter(alias => alias.value !== '').map(alias => this.shared.call_CUSEXT_ChgieldValue("MITPOP", values.MMITNO, alias.type, alias.qualifier, alias.value, this.shared.userContext.currentDivision));
+               await Promise.all(popCUGEXPromisesChg);
+               // --- End Add CUGEX MITPOP ---
+            } else {
+               // --- Item did not exist even after retries ---
+               console.error(`${input.newItem} NOT_FOUND_AFTER_COPY`);
+            }
          }
+
          else {
             this.copyItemBasicFG = "#icon-rejected-solid";//Progess Bar FG
             this.shared.displayErrorMessage(`${this.lang.get('ERROR_TYPE')['ERROR']}`, respCPY[0].errorMessage.errorMessage);
@@ -746,7 +739,7 @@ export class InterfaceKITFGComponent implements OnInit {
             txid: item?.TXID || "",
             dtid: item?.DTID || "",
             prgp: values?.MMPRGP || item?.PRGP || "",
-            acrf: "YYYYYYYY" || "",
+            acrf: "YYYYYYYY",
             sale: item?.SALE || "",
             atmo: item?.ATMO || "",
             atmn: item?.ATMN || "",
@@ -792,100 +785,284 @@ export class InterfaceKITFGComponent implements OnInit {
             input.tpcd = respTPCD[0]?.REPL;
          }
 
+         // Call API to copy the basic item
          const respCPY = await this.shared.call_MMS200_CpyItmBasic(input)
+
+         // Continue only if copy was successful
          if (respCPY.length > 0 && !respCPY[0].error) {
-            this.shared.call_MMS200_UpdItmBasic(values.MMITNO, input.acrf, "", ""); //update ACRF using this API since does not exist on prem
-            this.iconCopyItemBasicKIT = "#icon-success"; //Progess Bar KIT
-            this.shared.displaySuccessMessage(`${this.lang.get('ERROR_TYPE')['SUCCESS']}`, `${values.MMITNO} ${this.lang.get('ERROR_TYPE')['CREATED_WITH_SUCCESS']}`);
-            this.copyItemFacilityKIT = true;  //Progess Bar KIT
-            this.updateItemPriceKIT = true;   //Progess Bar KIT
-            this.cugex1KIT = true;            //Progess Bar KIT
-            const [respCPYFACI, respUpdPrice, respAddCUGEX1, respUpdGUEX] = await Promise.all([
-               this.shared.call_MMS200_CpyItmFac(inputFaci),
-               this.shared.call_MMS200_UpdItmPrice(values.MMITNO, values.MMDIGI),
-               this.shared.call_CUSEXT_AddFieldValue("MITMAS", values.MMITNO, input.delpic?.toString(), input.delgam?.toString(), input.delchef?.toString(), ""),
-               this.shared.call_CUSEXT_ChgieldValue("MITMAS", values.MMITNO, input.delpic?.toString(), input.delgam?.toString(), input.delchef?.toString(), "")
-            ]);
 
-            if (respCPYFACI.length > 0 && !respCPYFACI[0].error) {
-               this.iconCopyItemFacilityKIT = "#icon-success";//Progess Bar KIT
+            // 🔁 Utility function:
+            // Wait until the item really exists in MMS200 before continuing.
+            // This is required because item creation in M3 can be asynchronous.
+            const waitForItem = async (retries = 10, delay = 1000): Promise<any> => {
+               for (let i = 0; i < retries; i++) {
+
+                  // Check if item exists
+                  const resp = await this.shared.call_MMS200_GetItem(values.MMITNO);
+
+                  // If item exists → stop retrying and return response
+                  if (resp.length > 0 && !resp[0].error) {
+                     return resp;
+                  }
+
+                  // Otherwise wait before retrying
+                  await new Promise(res => setTimeout(res, delay));
+               }
+
+               // After all retries → return null (timeout case)
+               return null;
+            };
+
+            // Wait for item availability in database
+            const respMMS200_To_Wait_Item_To_Exist = await waitForItem();
+
+            // Continue only if item finally exists
+            if (respMMS200_To_Wait_Item_To_Exist) {
+
+               // Update ACRF using this API since does not exist on prem
+               const respUpdACRF = await this.shared.call_MMS200_UpdItmBasic(values.MMITNO, input.acrf, "", "");
+
+               // Update progress UI
+               this.iconCopyItemBasicKIT = "#icon-success"; //Progess Bar KIT
+
+               // Display success message to user
+               this.shared.displaySuccessMessage(
+                  `${this.lang.get('ERROR_TYPE')['SUCCESS']}`,
+                  `${values.MMITNO} ${this.lang.get('ERROR_TYPE')['CREATED_WITH_SUCCESS']}`
+               );
+
+               // Enable next progress steps
+               this.copyItemFacilityKIT = true;  //Progess Bar KIT
+               this.updateItemPriceKIT = true;   //Progess Bar KIT
+               this.cugex1KIT = true;            //Progess Bar KIT
+
+               // 🚀 Execute multiple independent API calls in parallel
+               const [respCPYFACI, respUpdPrice, respAddCUGEX1, respUpdGUEX] = await Promise.all([
+                  this.shared.call_MMS200_CpyItmFac(inputFaci),
+                  this.shared.call_MMS200_UpdItmPrice(values.MMITNO, values.MMDIGI),
+                  this.shared.call_CUSEXT_AddFieldValue("MITMAS", values.MMITNO, input.delpic?.toString(), input.delgam?.toString(), input.delchef?.toString(), ""),
+                  this.shared.call_CUSEXT_ChgieldValue("MITMAS", values.MMITNO, input.delpic?.toString(), input.delgam?.toString(), input.delchef?.toString(), "")
+               ]);
+
+               // ===== ACRF update result =====
+               if (respUpdACRF.length > 0 && !respUpdACRF[0].error) {
+                  this.iconCopyItemBasicKIT = "#icon-success";//Progess Bar KIT
+               } else {
+                  this.iconCopyItemBasicKIT = "#icon-rejected-solid";//Progess Bar KIT
+               }
+
+               // ===== Facility copy result =====
+               if (respCPYFACI.length > 0 && !respCPYFACI[0].error) {
+                  this.iconCopyItemFacilityKIT = "#icon-success";//Progess Bar KIT
+               } else {
+                  this.iconCopyItemFacilityKIT = "#icon-rejected-solid";//Progess Bar KIT
+               }
+
+               // ===== Price update result =====
+               if (respUpdPrice.length > 0 && !respUpdPrice[0].error) {
+                  this.iconUpdateItemPriceKIT = "#icon-success";//Progess Bar KIT
+               } else {
+                  this.iconUpdateItemPriceKIT = "#icon-rejected-solid";//Progess Bar KIT
+               }
+
+               // CUGEX always marked as success visually
+               this.iconCUGEX1KIT = "#icon-success";//Progess Bar KIT
+
+
+
+               // ============================================================
+               // LANGUAGE CREATION
+               // ============================================================
+               this.languageKIT = true;//Progess Bar KIT
+
+               // Supported language list
+               const countries = ['GB', 'DE', 'PL', 'NL', 'PT', 'ES', 'FR'];
+
+               // Build API calls only for languages that contain a description
+               const promises = countries
+                  .filter(code => values[`LMCD_${code}_ITDS`]?.trim() !== '')
+                  .map(code => {
+                     const itds = values[`LMCD_${code}_ITDS`]; // Item description
+                     const fud = values[`LMCD_${code}_FUDS`];  // Additional description
+                     return this.shared.call_MMS030_Add(values.MMITNO, code, itds, fud);
+                  });
+
+               // Execute all language creations in parallel
+               await Promise.all(promises);
+
+               // Update UI icon
+               this.iconLanguageKIT = "#icon-success";//Progess Bar KIT
+
+
+
+               // ============================================================
+               // ALIAS CREATION (POP)
+               // ============================================================
+               this.aliasKIT = true;//Progess Bar KIT
+               this.iconAliasKIT = "#icon-success";//Progess Bar KIT
+
+               // Define alias structure
+               const aliases = [
+                  { type: '1', value: values.POP1, qualifier: '' },
+                  { type: '2', value: values.POP2, qualifier: 'EA13 ' }
+               ];
+
+               // Call alias creation only if value is filled
+               const popPromises = aliases
+                  .filter(alias => alias.value !== '')
+                  .map(alias => this.shared.call_MMS025_AddAlias(alias.type, values.MMITNO, alias.value, alias.qualifier));
+
+               const respAlias = await Promise.all(popPromises);
+
+               // If any alias creation failed → show rejected icon
+               if (respAlias.some(result => result[0]?.error)) {
+                  this.iconAliasKIT = "#icon-rejected-solid";//Progess Bar KIT
+               }
+
+
+
+               // ============================================================
+               // ADD / UPDATE CUGEX FOR MITPOP
+               // ============================================================
+
+               // Add values
+               const popCUGEXPromisesAdd = aliases
+                  .filter(alias => alias.value !== '')
+                  .map(alias =>
+                     this.shared.call_CUSEXT_AddFieldValue(
+                        "MITPOP",
+                        values.MMITNO,
+                        alias.type,
+                        alias.qualifier,
+                        alias.value,
+                        this.shared.userContext.currentDivision
+                     )
+                  );
+
+               await Promise.all(popCUGEXPromisesAdd);
+
+               // Change values (ensure update if already existing)
+               const popCUGEXPromisesChg = aliases
+                  .filter(alias => alias.value !== '')
+                  .map(alias =>
+                     this.shared.call_CUSEXT_ChgieldValue(
+                        "MITPOP",
+                        values.MMITNO,
+                        alias.type,
+                        alias.qualifier,
+                        alias.value,
+                        this.shared.userContext.currentDivision
+                     )
+                  );
+
+               await Promise.all(popCUGEXPromisesChg);
+               //End Add CUGEX MITPOP
+
+               // ============================================================
+               // PDS001 / PDS002
+               // ============================================================
+               this.PDS001 = true;
+               await this.launchPDS001Copy(inputFaci?.cpyfaci?.trim(), input.refItem?.trim(), "KIT", input.newItem?.trim());
+               await new Promise(resolve => setTimeout(resolve, 2500));
+               const respCheckPDS001 = await this.shared.call_PDS001_GetProductStructure(inputFaci?.cpyfaci?.trim(), input.newItem?.trim(), "KIT");
+               if (respCheckPDS001.length > 0 && !respCheckPDS001[0].error) {
+                  this.iconPDS001 = "#icon-success";
+                  const dcon = input?.chcd === "1" ? "1" : "0";
+
+                  const respUpdatePDS001 = await this.shared.call_PDS001_Update(
+                     inputFaci?.cpyfaci?.trim(),
+                     input.newItem?.trim(),
+                     "10",
+                     "KIT",
+                     input?.resp,
+                     "",
+                     dcon
+                  );
+
+                  // ************************     PDS002     ************************ \\
+                  this.PDS002 = true;
+
+                  const respListCompoPDS002 = await this.shared.call_PDS002_LstComponent(
+                     inputFaci?.cpyfaci?.trim(),
+                     input.cpyItem,
+                     "KIT"
+                  );
+
+                  const respLstOperationPDS002 = await this.shared.call_PDS002_LstOperation(
+                     inputFaci?.cpyfaci?.trim(),
+                     input.cpyItem,
+                     "KIT"
+                  );
+                  if (this.formMITMAS.value.CREATELINEKIT) {
+                     this.PDS002 = true;
+
+
+                     if (respListCompoPDS002.length > 0 && !respListCompoPDS002[0].error) {
+                        await Promise.all(
+                           respListCompoPDS002.map(item => this.shared.call_PDS002_CreateComponent(item, input.newItem?.trim(), ""))
+                        );
+                     }
+
+                  } else {
+                     // ************************     PDS002 -Delete Mats & Ops   ************************ \\
+                     this.PDS002 = true;
+
+                     const respListCompoPDS002 = await this.shared.call_PDS002_LstComponent(
+                        inputFaci?.cpyfaci?.trim(),
+                        input.cpyItem,
+                        "KIT"
+                     );
+
+                     if (respListCompoPDS002.length > 0 && !respListCompoPDS002[0].error) {
+                        await Promise.all(
+                           respListCompoPDS002.map(item => this.shared.call_PDS002_DeleteCompoNOperation(item, input.newItem?.trim()))
+                        );
+                     }
+
+                     if (respLstOperationPDS002.length > 0 && !respLstOperationPDS002[0].error) {
+                        await Promise.all(respLstOperationPDS002.map(item => this.shared.call_PDS002_DeleteCompoNOperation(item, input.newItem?.trim())));
+                     }
+
+                  }
+                  this.iconPDS002 = "#icon-success";
+               }
+               else {
+                  this.iconPDS001 = "#icon-rejected-solid";
+                  this.PDS002 = true;
+                  this.iconPDS002 = "#icon-rejected-solid";
+               }
+
+
+               // ============================================================
+               // GLOBAL ERROR HANDLING
+               // ============================================================
+               let errorMessages: string[] = [];
+
+               // Capture price error
+               if (respUpdPrice?.[0]?.error) {
+                  errorMessages.push(`PRIX: ${respUpdPrice[0].errorMessage.errorMessage}`);
+               }
+
+               // Capture facility error
+               if (respCPYFACI?.[0]?.error) {
+                  errorMessages.push(`FACI: ${respCPYFACI[0].errorMessage.errorMessage}`);
+               }
+
+               // If any error occurred → show error message and stop process
+               if (errorMessages.length > 0) {
+                  console.error(`${this.lang.get('ERROR_TYPE')['ERROR']}`, errorMessages.join('\n'));
+                  this.isBusyForm = false;
+                  return;
+               }
+
             } else {
-               this.iconCopyItemFacilityKIT = "#icon-rejected-solid";//Progess Bar KIT
-            }
-
-            if (respUpdPrice.length > 0 && !respUpdPrice[0].error) {
-               this.iconUpdateItemPriceKIT = "#icon-success";//Progess Bar KIT
-            } else {
-               this.iconUpdateItemPriceKIT = "#icon-rejected-solid";//Progess Bar KIT
-            }
-            this.iconCUGEX1KIT = "#icon-success";//Progess Bar KIT
-
-
-
-            this.languageKIT = true;//Progess Bar KIT
-            const countries = ['GB', 'DE', 'PL', 'NL', 'PT', 'ES', 'FR'];
-
-            const promises = countries
-               .filter(code => values[`LMCD_${code}_ITDS`]?.trim() !== '')
-               .map(code => {
-                  const itds = values[`LMCD_${code}_ITDS`];
-                  const fud = values[`LMCD_${code}_FUDS`];
-                  return this.shared.call_MMS030_Add(values.MMITNO, code, itds, fud);
-               });
-
-            await Promise.all(promises);
-            this.iconLanguageKIT = "#icon-success";//Progess Bar KIT
-
-            // Create Item Alias
-            this.aliasKIT = true;//Progess Bar KIT
-            this.iconAliasKIT = "#icon-success";//Progess Bar KIT
-
-            const aliases = [
-               { type: '1', value: values.POP1, qualifier: '' },
-               { type: '2', value: values.POP2, qualifier: 'EA13 ' }
-            ];
-
-            const popPromises = aliases
-               .filter(alias => alias.value !== '')
-               .map(alias => this.shared.call_MMS025_AddAlias(alias.type, values.MMITNO, alias.value, alias.qualifier));
-
-            const respAlias = await Promise.all(popPromises);
-
-            if (respAlias.some(result => result[0]?.error)) {
-               this.iconAliasKIT = "#icon-rejected-solid";//Progess Bar KIT
-            }
-            //Add CUGEX MITPOP
-            const popCUGEXPromisesAdd = aliases
-               .filter(alias => alias.value !== '')
-               .map(alias => this.shared.call_CUSEXT_AddFieldValue("MITPOP", values.MMITNO, alias.type, alias.qualifier, alias.value, this.shared.userContext.currentDivision));
-
-            await Promise.all(popCUGEXPromisesAdd);
-
-            const popCUGEXPromisesChg = aliases
-               .filter(alias => alias.value !== '')
-               .map(alias => this.shared.call_CUSEXT_ChgieldValue("MITPOP", values.MMITNO, alias.type, alias.qualifier, alias.value, this.shared.userContext.currentDivision));
-
-            await Promise.all(popCUGEXPromisesChg);
-            //End Add CUGEX MITPOP
-
-
-
-            let errorMessages: string[] = [];
-
-            if (respUpdPrice?.[0]?.error) {
-               errorMessages.push(`PRIX: ${respUpdPrice[0].errorMessage.errorMessage}`);
-            }
-
-            if (respCPYFACI?.[0]?.error) {
-               errorMessages.push(`FACI: ${respCPYFACI[0].errorMessage.errorMessage}`);
-            }
-
-            if (errorMessages.length > 0) {
-               this.shared.displayToast(`${this.lang.get('ERROR_TYPE')['ERROR']}`, errorMessages.join('\n'));
+               // ❌ Item never appeared after retries (timeout scenario)
+               console.error("Item creation timeout. Please try again.");
                this.isBusyForm = false;
                return;
             }
          }
+
          else {
             this.iconCopyItemBasicKIT = "#icon-rejected-solid"; //Progess Bar KIT
             this.shared.displayErrorMessage(`${this.lang.get('ERROR_TYPE')['ERROR']}`, respCPY[0].errorMessage.errorMessage);
@@ -1059,7 +1236,8 @@ export class InterfaceKITFGComponent implements OnInit {
             'M9ACRF': 'MMITTY',
             'MMITTY': 'MMVTCP',
             'MMVTCP': 'DELPIC',
-            'MMDIGI': 'LMCD_GB_ITDS',
+            'MMDIGI': 'CREATELINEKIT',
+            'CREATELINEKIT': 'LMCD_GB_ITDS',
             'DELGAM': 'MMITNO'
          };
 
@@ -1145,7 +1323,44 @@ export class InterfaceKITFGComponent implements OnInit {
       });
    }
 
+   async launchPDS001Copy(faci: string, cpyprno: string, strt: string, newprno: string) {
+      let xmlTemplate = `<?xml version="1.0" encoding="utf-8"?>
+    <sequence>
+        <step command="RUN" value="PDS001" />
+        <step command="AUTOSET">
+            <field name="WWQTTP">1</field>
+            <field name="W1OBKV">{{faci}}</field>
+            <field name="W2OBKV">{{cpyprno}}</field>
+            <field name="W3OBKV">{{strt}}</field>
+        </step>
+        <step command="KEY" value="ENTER" />
+        <step command="LSTOPT" value="3" />
+        <step command="AUTOSET">
+            <field name="CPFACI">{{faci}}</field>
+            <field name="CPPRNO">{{newprno}}</field>
+            <field name="CPSTRT">{{strt}}</field>
+            <field name="CPCPOP">0</field>
+            <field name="WCCPPV">0</field>
+        </step>
+        <step command="KEY" value="ENTER" />
+        <step command="KEY" value="F3" />
+    </sequence>`;
 
+      const replacements: Record<string, string> = {
+         '{{faci}}': faci?.trim(),
+         '{{cpyprno}}': cpyprno?.trim(),
+         '{{strt}}': strt?.trim(),
+         '{{newprno}}': newprno?.trim() // if needed later
+      };
 
+      Object.entries(replacements).forEach(([key, value]) => {
+         xmlTemplate = xmlTemplate.replace(new RegExp(key, 'g'), value);
+      });
+
+      console.log("xmlTemplate", xmlTemplate);
+
+      const prefix = `mforms://_automation?data=${encodeURIComponent(xmlTemplate)}`;
+      return this.appService.launch(prefix);
+   }
 
 }

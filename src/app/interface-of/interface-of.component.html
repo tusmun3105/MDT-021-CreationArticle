@@ -59,20 +59,175 @@
          </tr>
       </table>
 
+      <div class="row" style="text-align: center; margin-top: -40px;">
+         <!-- Status for progress OF/OA/OD-->
+         <div class="ten columns">
+            <div class="process-indicator compact responsive has-labels">
+               <div class="display">
 
+                  <!-- Validation -->
+                  <div class="step">
+                     <span class="label">{{ lang.get('PROGRESS_BAR_OFOAOD').VALIDATION_FIELD }}</span>
+                     <div class="lines">
+                        <span class="indicator icon">
+                           <svg class="icon" [ngClass]="iconValidateField?.substring(1)" aria-hidden="true"
+                              role="presentation">
+                              <use [attr.href]="iconValidateField || '#icon-empty-circle'"></use>
+                           </svg>
+                        </span>
+                        <span class="separator" [ngClass]="validateField ? 'darker' : ''"></span>
+                     </div>
+                  </div>
 
+                  <!-- MMS001 / CUGEX -->
+                  <div class="step">
+                     <span class="label">{{ lang.get('PROGRESS_BAR_OFOAOD').MMS001 }}</span>
+                     <div class="lines">
+                        <span class="indicator icon">
+                           <svg class="icon" [ngClass]="iconMMS001_CUGEX?.substring(1)" aria-hidden="true"
+                              role="presentation">
+                              <use [attr.href]="iconMMS001_CUGEX || '#icon-empty-circle'"></use>
+                           </svg>
+                        </span>
+                        <span class="separator" [ngClass]="MMS001_CUGEX ? 'darker' : ''"></span>
+                     </div>
+                  </div>
 
+                  <!-- MMS030 -->
+                  <div class="step">
+                     <span class="label">{{ lang.get('PROGRESS_BAR_OFOAOD').MMS030 }}</span>
+                     <div class="lines">
+                        <span class="indicator icon">
+                           <svg class="icon" [ngClass]="iconMMS030?.substring(1)" aria-hidden="true"
+                              role="presentation">
+                              <use [attr.href]="iconMMS030 || '#icon-empty-circle'"></use>
+                           </svg>
+                        </span>
+                        <span class="separator" [ngClass]="MMS030 ? 'darker' : ''"></span>
+                     </div>
+                  </div>
 
+                  <!-- MMS025 / CUGEX -->
+                  <div class="step">
+                     <span class="label">{{ lang.get('PROGRESS_BAR_OFOAOD').MMS025 }}</span>
+                     <div class="lines">
+                        <span class="indicator icon">
+                           <svg class="icon" [ngClass]="iconMMS025_CUGEX?.substring(1)" aria-hidden="true"
+                              role="presentation">
+                              <use [attr.href]="iconMMS025_CUGEX || '#icon-empty-circle'"></use>
+                           </svg>
+                        </span>
+                        <span class="separator" [ngClass]="MMS025_CUGEX ? 'darker' : ''"></span>
+                     </div>
+                  </div>
 
+                  <!-- MMS002 -->
+                  <div class="step">
+                     <span class="label">{{ lang.get('PROGRESS_BAR_OFOAOD').MMS002 }}</span>
+                     <div class="lines">
+                        <span class="indicator icon">
+                           <svg class="icon" [ngClass]="iconMMS002?.substring(1)" aria-hidden="true"
+                              role="presentation">
+                              <use [attr.href]="iconMMS002 || '#icon-empty-circle'"></use>
+                           </svg>
+                        </span>
+                        <span class="separator" [ngClass]="MMS002 ? 'darker' : ''"></span>
+                     </div>
+                  </div>
 
+                  <!-- MMS003 -->
+                  <div class="step">
+                     <span class="label">{{ lang.get('PROGRESS_BAR_OFOAOD').MMS003 }}</span>
+                     <div class="lines">
+                        <span class="indicator icon">
+                           <svg class="icon" [ngClass]="iconMMS003?.substring(1)" aria-hidden="true"
+                              role="presentation">
+                              <use [attr.href]="iconMMS003 || '#icon-empty-circle'"></use>
+                           </svg>
+                        </span>
+                        <span class="separator" [ngClass]="MMS003 ? 'darker' : ''"></span>
+                     </div>
+                  </div>
 
+                  <!-- ENS025 -->
+                  <div class="step">
+                     <span class="label">{{ lang.get('PROGRESS_BAR_OFOAOD').ENS025 }}</span>
+                     <div class="lines">
+                        <span class="indicator icon">
+                           <svg class="icon" [ngClass]="iconENS025?.substring(1)" aria-hidden="true"
+                              role="presentation">
+                              <use [attr.href]="iconENS025 || '#icon-empty-circle'"></use>
+                           </svg>
+                        </span>
+                        <span class="separator" [ngClass]="ENS025 ? 'darker' : ''"></span>
+                     </div>
+                  </div>
 
+                  <!-- MMS059 -->
+                  <div class="step">
+                     <span class="label">{{ lang.get('PROGRESS_BAR_OFOAOD').MMS059 }}</span>
+                     <div class="lines">
+                        <span class="indicator icon">
+                           <svg class="icon" [ngClass]="iconMMS059?.substring(1)" aria-hidden="true"
+                              role="presentation">
+                              <use [attr.href]="iconMMS059 || '#icon-empty-circle'"></use>
+                           </svg>
+                        </span>
+                        <span class="separator" [ngClass]="MMS059 ? 'darker' : ''"
+                           *ngIf="!hideMMS059ProgressBar"></span>
+                     </div>
+                  </div>
 
-      <div class="row" style="text-align: center;">
-         <div class="twelve columns" style="position: relative;">
+                  <!-- PDS001 -->
+                  <div class="step" [hidden]="hideFieldMITBAL">
+                     <span class="label">{{ lang.get('PROGRESS_BAR_OFOAOD').PDS001 }}</span>
+                     <div class="lines">
+                        <span class="indicator icon">
+                           <svg class="icon" [ngClass]="iconPDS001?.substring(1)" aria-hidden="true"
+                              role="presentation">
+                              <use [attr.href]="iconPDS001 || '#icon-empty-circle'"></use>
+                           </svg>
+                        </span>
+                        <span class="separator" [ngClass]="PDS001 ? 'darker' : ''"></span>
+                     </div>
+                  </div>
+
+                  <!-- PDS002 -->
+                  <div class="step" [hidden]="hideFieldMITBAL">
+                     <span class="label">{{ lang.get('PROGRESS_BAR_OFOAOD').PDS002 }}</span>
+                     <div class="lines">
+                        <span class="indicator icon">
+                           <svg class="icon" [ngClass]="iconPDS002?.substring(1)" aria-hidden="true"
+                              role="presentation">
+                              <use [attr.href]="iconPDS002 || '#icon-empty-circle'"></use>
+                           </svg>
+                        </span>
+                        <span class="separator" [ngClass]="PDS002 ? 'darker' : ''"
+                           *ngIf="!hidePDS002ProgressBar"></span>
+                     </div>
+                  </div>
+
+                  <!-- PDS040 -->
+                  <div class="step" [hidden]="hideFieldMITNWL">
+                     <span class="label">{{ lang.get('PROGRESS_BAR_OFOAOD').PPS040 }}</span>
+                     <div class="lines">
+                        <span class="indicator icon">
+                           <svg class="icon" [ngClass]="iconPPS040?.substring(1)" aria-hidden="true"
+                              role="presentation">
+                              <use [attr.href]="iconPPS040 || '#icon-empty-circle'"></use>
+                           </svg>
+                        </span>
+                        <span class="separator" [ngClass]="PPS040 ? 'darker' : ''"></span>
+                     </div>
+                  </div>
+
+               </div>
+            </div>
+         </div>
+         <div class="two columns">
             <!-- Back button aligned to top-left -->
-            <button class="btn-primary" type="button" id="buttonPrev"
-               style="position: absolute; top: 0; right: 0; margin-top:10px" (click)="onsubmit()">
+            <button class="btn-primary" type="button" id="buttonPrev" style="margin-top: 60px; margin-left: 90px;"
+               (click)="onsubmit()">
                <svg class="icon" focusable="false" aria-hidden="true" role="presentation">
                   <use href="#icon-add"></use>
                </svg>
@@ -149,7 +304,7 @@
                      </td>
                      <td>
                         <input type="number" class="lookup" id="MMWAPC" name="MMWAPC" formControlName="MMWAPC" min="0"
-                           step="0.5" min="0" max="9999999" />
+                           min="0" max="9999999" />
                      </td>
                   </tr>
 
@@ -159,7 +314,7 @@
                      </td>
                      <td>
                         <input type="number" class="lookup" id="MMILEN" name="MMILEN" formControlName="MMILEN" min="0"
-                           step="0.5" min="0" max="9999999" />
+                           min="0" max="9999999" />
                      </td>
                   </tr>
 
@@ -169,7 +324,7 @@
                      </td>
                      <td>
                         <input type="number" class="lookup" id="MMIWID" name="MMIWID" formControlName="MMIWID" min="0"
-                           step="0.5" min="0" max="9999999" />
+                           min="0" max="9999999" />
                      </td>
                   </tr>
 
@@ -221,7 +376,7 @@
                      </td>
                      <td>
                         <input type="number" class="lookup" id="MMGRWE" name="MMGRWE" formControlName="MMGRWE" min="0"
-                           step="0.5" min="0" max="99999999999999999" />
+                           min="0" max="99999999999999999" />
                      </td>
                   </tr>
 
@@ -337,8 +492,8 @@
                         <label for="MBLEA1">{{ lang.get('MITBAL_FIELD_LABELS').MBLEA1 }}</label>
                      </td>
                      <td>
-                        <input type="number" id="MBLEA1" name="MBLEA1" formControlName="MBLEA1" class="lookup" min="0"
-                           step="0.01" />
+                        <input type="number" id="MBLEA1" name="MBLEA1" formControlName="MBLEA1" class="lookup"
+                           min="0" />
                      </td>
                   </tr>
 
@@ -347,8 +502,8 @@
                         <label for="IFPUPR">{{ lang.get('MITVEN_FIELD_LABELS').IFPUPR }}</label>
                      </td>
                      <td>
-                        <input type="number" id="IFPUPR" name="IFPUPR" formControlName="IFPUPR" class="lookup" min="0"
-                           step="0.01" />
+                        <input type="number" id="IFPUPR" name="IFPUPR" formControlName="IFPUPR" class="lookup"
+                           min="0" />
                      </td>
                   </tr>
 
@@ -358,7 +513,7 @@
                      </td>
                      <td>
                         <input type="number" id="IFPUCD" name="IFPUCD" formControlName="IFPUCD" min="0" max="99999"
-                           step="1" class="lookup" />
+                           class="lookup" />
                      </td>
                   </tr>
 
@@ -500,7 +655,7 @@
                            </td>
                            <td>
                               <input type="number" class="lookup input-sm" id="DELPIC" name="DELPIC"
-                                 formControlName="DELPIC" min="0" step="0.5" min="0" max="999999999999999999999" />
+                                 formControlName="DELPIC" min="0" min="0" max="999999999999999999999" />
                            </td>
                         </tr>
                         <tr>
@@ -509,7 +664,7 @@
                            </td>
                            <td>
                               <input type="number" class="lookup input-sm" id="DELGAM" name="DELGAM"
-                                 formControlName="DELGAM" min="0" step="0.5" min="0" max="999999999999999999999" />
+                                 formControlName="DELGAM" min="0" min="0" max="999999999999999999999" />
                            </td>
                         </tr>
 
@@ -531,160 +686,4 @@
             </div>
          </div>
       </div>
-
-      <!-- Status for progress OF/OA/OD-->
-      <div class="twelve columns">
-         <div class="process-indicator compact responsive has-labels">
-            <div class="display">
-
-               <!-- Validation -->
-               <div class="step">
-                  <span class="label">{{ lang.get('PROGRESS_BAR_OFOAOD').VALIDATION_FIELD }}</span>
-                  <div class="lines">
-                     <span class="indicator icon">
-                        <svg class="icon" [ngClass]="iconValidateField?.substring(1)" aria-hidden="true"
-                           role="presentation">
-                           <use [attr.href]="iconValidateField || '#icon-empty-circle'"></use>
-                        </svg>
-                     </span>
-                     <span class="separator" [ngClass]="validateField ? 'darker' : ''"></span>
-                  </div>
-               </div>
-
-               <!-- MMS001 / CUGEX -->
-               <div class="step">
-                  <span class="label">{{ lang.get('PROGRESS_BAR_OFOAOD').MMS001 }}</span>
-                  <div class="lines">
-                     <span class="indicator icon">
-                        <svg class="icon" [ngClass]="iconMMS001_CUGEX?.substring(1)" aria-hidden="true"
-                           role="presentation">
-                           <use [attr.href]="iconMMS001_CUGEX || '#icon-empty-circle'"></use>
-                        </svg>
-                     </span>
-                     <span class="separator" [ngClass]="MMS001_CUGEX ? 'darker' : ''"></span>
-                  </div>
-               </div>
-
-               <!-- MMS030 -->
-               <div class="step">
-                  <span class="label">{{ lang.get('PROGRESS_BAR_OFOAOD').MMS030 }}</span>
-                  <div class="lines">
-                     <span class="indicator icon">
-                        <svg class="icon" [ngClass]="iconMMS030?.substring(1)" aria-hidden="true" role="presentation">
-                           <use [attr.href]="iconMMS030 || '#icon-empty-circle'"></use>
-                        </svg>
-                     </span>
-                     <span class="separator" [ngClass]="MMS030 ? 'darker' : ''"></span>
-                  </div>
-               </div>
-
-               <!-- MMS025 / CUGEX -->
-               <div class="step">
-                  <span class="label">{{ lang.get('PROGRESS_BAR_OFOAOD').MMS025 }}</span>
-                  <div class="lines">
-                     <span class="indicator icon">
-                        <svg class="icon" [ngClass]="iconMMS025_CUGEX?.substring(1)" aria-hidden="true"
-                           role="presentation">
-                           <use [attr.href]="iconMMS025_CUGEX || '#icon-empty-circle'"></use>
-                        </svg>
-                     </span>
-                     <span class="separator" [ngClass]="MMS025_CUGEX ? 'darker' : ''"></span>
-                  </div>
-               </div>
-
-               <!-- MMS002 -->
-               <div class="step">
-                  <span class="label">{{ lang.get('PROGRESS_BAR_OFOAOD').MMS002 }}</span>
-                  <div class="lines">
-                     <span class="indicator icon">
-                        <svg class="icon" [ngClass]="iconMMS002?.substring(1)" aria-hidden="true" role="presentation">
-                           <use [attr.href]="iconMMS002 || '#icon-empty-circle'"></use>
-                        </svg>
-                     </span>
-                     <span class="separator" [ngClass]="MMS002 ? 'darker' : ''"></span>
-                  </div>
-               </div>
-
-               <!-- MMS003 -->
-               <div class="step">
-                  <span class="label">{{ lang.get('PROGRESS_BAR_OFOAOD').MMS003 }}</span>
-                  <div class="lines">
-                     <span class="indicator icon">
-                        <svg class="icon" [ngClass]="iconMMS003?.substring(1)" aria-hidden="true" role="presentation">
-                           <use [attr.href]="iconMMS003 || '#icon-empty-circle'"></use>
-                        </svg>
-                     </span>
-                     <span class="separator" [ngClass]="MMS003 ? 'darker' : ''"></span>
-                  </div>
-               </div>
-
-               <!-- ENS025 -->
-               <div class="step">
-                  <span class="label">{{ lang.get('PROGRESS_BAR_OFOAOD').ENS025 }}</span>
-                  <div class="lines">
-                     <span class="indicator icon">
-                        <svg class="icon" [ngClass]="iconENS025?.substring(1)" aria-hidden="true" role="presentation">
-                           <use [attr.href]="iconENS025 || '#icon-empty-circle'"></use>
-                        </svg>
-                     </span>
-                     <span class="separator" [ngClass]="ENS025 ? 'darker' : ''"></span>
-                  </div>
-               </div>
-
-               <!-- MMS059 -->
-               <div class="step">
-                  <span class="label">{{ lang.get('PROGRESS_BAR_OFOAOD').MMS059 }}</span>
-                  <div class="lines">
-                     <span class="indicator icon">
-                        <svg class="icon" [ngClass]="iconMMS059?.substring(1)" aria-hidden="true" role="presentation">
-                           <use [attr.href]="iconMMS059 || '#icon-empty-circle'"></use>
-                        </svg>
-                     </span>
-                     <span class="separator" [ngClass]="MMS059 ? 'darker' : ''" *ngIf="!hideMMS059ProgressBar"></span>
-                  </div>
-               </div>
-
-               <!-- PDS001 -->
-               <div class="step" [hidden]="hideFieldMITBAL">
-                  <span class="label">{{ lang.get('PROGRESS_BAR_OFOAOD').PDS001 }}</span>
-                  <div class="lines">
-                     <span class="indicator icon">
-                        <svg class="icon" [ngClass]="iconPDS001?.substring(1)" aria-hidden="true" role="presentation">
-                           <use [attr.href]="iconPDS001 || '#icon-empty-circle'"></use>
-                        </svg>
-                     </span>
-                     <span class="separator" [ngClass]="PDS001 ? 'darker' : ''"></span>
-                  </div>
-               </div>
-
-               <!-- PDS002 -->
-               <div class="step" [hidden]="hideFieldMITBAL">
-                  <span class="label">{{ lang.get('PROGRESS_BAR_OFOAOD').PDS002 }}</span>
-                  <div class="lines">
-                     <span class="indicator icon">
-                        <svg class="icon" [ngClass]="iconPDS002?.substring(1)" aria-hidden="true" role="presentation">
-                           <use [attr.href]="iconPDS002 || '#icon-empty-circle'"></use>
-                        </svg>
-                     </span>
-                     <span class="separator" [ngClass]="PDS002 ? 'darker' : ''" *ngIf="!hidePDS002ProgressBar"></span>
-                  </div>
-               </div>
-
-               <!-- PDS040 -->
-               <div class="step" [hidden]="hideFieldMITNWL">
-                  <span class="label">{{ lang.get('PROGRESS_BAR_OFOAOD').PPS040 }}</span>
-                  <div class="lines">
-                     <span class="indicator icon">
-                        <svg class="icon" [ngClass]="iconPPS040?.substring(1)" aria-hidden="true" role="presentation">
-                           <use [attr.href]="iconPPS040 || '#icon-empty-circle'"></use>
-                        </svg>
-                     </span>
-                     <span class="separator" [ngClass]="PPS040 ? 'darker' : ''"></span>
-                  </div>
-               </div>
-
-            </div>
-         </div>
-      </div>
-
    </div>
